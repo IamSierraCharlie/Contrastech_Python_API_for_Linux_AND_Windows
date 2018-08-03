@@ -13,3 +13,5 @@ code.
 - Mars1300-210uc
 
 In closing, if you own one of these cameras and work in Linux and can use this code, then please do so.  Also, please contribute anything you feel to be of benefit.
+# Example use
+To be provided 
