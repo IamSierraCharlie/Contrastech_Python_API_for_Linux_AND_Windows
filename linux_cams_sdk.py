@@ -272,6 +272,7 @@ class Camera(object):
             return -1
         acquisitionEnumMode.contents.release(acquisitionEnumMode)
 
+
         nRet = self.image_source.contents.attachGrabbing(self.image_source, self.frameCallbackFunc)
         if nRet != 0:
             print("attachGrabbing fail!")
@@ -400,3 +401,48 @@ class Camera(object):
 
         final = np.reshape(np.frombuffer(bytearray(string_at(rgbBuff, self.img_channels * self.img_height * self.img_width)), dtype=np.uint8), (self.img_height, self.img_width,  self.img_channels))
         return final
+
+    def set_setting(self, setting, option):
+        #######################################################
+        acquisitionEnumMode = pointer(GENICAM_EnumNode())
+        acquisitionEnumModeInfo = GENICAM_EnumNodeInfo()
+        acquisitionEnumModeInfo.pCamera = pointer(self.cam)
+        acquisitionEnumModeInfo.attrName = setting
+        nRet = GENICAM_createEnumNode(byref(acquisitionEnumModeInfo), byref(acquisitionEnumMode))
+        if nRet != 0:
+            print("Setting acquisition mode failed!")
+            # Release related resources
+            self.image_source.contents.release(self.image_source)
+            return -1
+        # change acquisition mode to continuous
+        print('change acquisition mode to continuous')
+        nRet = acquisitionEnumMode.contents.setValueBySymbol(acquisitionEnumMode, option)
+        if nRet != 0:
+            print("FAILED - change acquisition mode to continuous")
+            # Release related resources
+            acquisitionEnumMode.contents.release(acquisitionEnumMode)
+            self.image_source.contents.release(self.image_source)  # this line dumps everything
+            return -1
+        acquisitionEnumMode.contents.release(acquisitionEnumMode)
+
+        #######################################################
+
+    def setExposureTime(self, dVal):  # almost straight from the contrastech demo
+        exposureTimeNode = pointer(GENICAM_DoubleNode())
+        exposureTimeNodeInfo = GENICAM_DoubleNodeInfo()
+        exposureTimeNodeInfo.pCamera = pointer(self.cam)
+        exposureTimeNodeInfo.attrName = b"ExposureTime"
+        nRet = GENICAM_createDoubleNode(byref(exposureTimeNodeInfo), byref(exposureTimeNode))
+        if (nRet != 0):
+            print("create ExposureTime Node fail!")
+            return -1
+        nRet = exposureTimeNode.contents.setValue(exposureTimeNode, c_double(dVal))
+        if (nRet != 0):
+            print("set ExposureTime value [%f]us fail!" % dVal)
+            exposureTimeNode.contents.release(exposureTimeNode)
+            return -1
+        else:
+            print("set ExposureTime value [%f]us success." % dVal)
+        exposureTimeNode.contents.release(exposureTimeNode)
+        return 0
+
