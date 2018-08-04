@@ -3,6 +3,7 @@ from MVSDK import *  # only for the contrastech camera
 import numpy as np
 g_cameraStatusUserInfo = b"statusInfo"
 
+
 class Camera(object):
     def __init__(self, img_width, img_height, img_channels):
         # get the camera list
@@ -78,7 +79,6 @@ class Camera(object):
             # Release related resources
             eventSubscribe.contents.release(eventSubscribe)
             return -1
-
         # Relevant resources need to be released when they are no longer used
         eventSubscribe.contents.release(eventSubscribe)
         return 0
@@ -302,7 +302,6 @@ class Camera(object):
             self.image_source.contents.release(self.image_source)
             return -1
 
-
     def grab_image(self):
         trigSoftwareCmdNode = self.acqCtrl.contents.triggerSoftware(self.acqCtrl)
         nRet = trigSoftwareCmdNode.execute(byref(trigSoftwareCmdNode))
@@ -407,7 +406,8 @@ class Camera(object):
     # caveats - unable to set numbers - only settings
     def change_setting(self, setting, option):
         print('\n\n\nInstance is: {}'.format(type(option)))
-        if isinstance(option, int) and not isinstance(option, bool):
+        if isinstance(option, int) and not isinstance(option, bool):  # booleans seem to go through here until
+            # this line was corrected
             print('changing with settings num')
             self.settings_num(setting, int_option=option)
         elif isinstance(option, bytes):
@@ -422,7 +422,6 @@ class Camera(object):
             exit()
 
     def settings(self, setting, option):
-        #######################################################
         setting_char_EnumMode = pointer(GENICAM_EnumNode())
         setting_char_EnumModeInfo = GENICAM_EnumNodeInfo()
         setting_char_EnumModeInfo.pCamera = pointer(self.cam)
@@ -445,9 +444,7 @@ class Camera(object):
         else:
             print('Success!')
         setting_char_EnumMode.contents.release(setting_char_EnumMode)
-        #######################################################
 
-    # TODO turn this into a function that servers all settings where numbers need to be changed
     def settings_num(self, setting, int_option):  # almost straight from the contrastech demo
         setting_num_Node = pointer(GENICAM_DoubleNode())
         setting_num_NodeInfo = GENICAM_DoubleNodeInfo()
@@ -459,11 +456,11 @@ class Camera(object):
             return -1
         nRet = setting_num_Node.contents.setValue(setting_num_Node, c_double(int_option))
         if nRet != 0:
-            print("set {} [{}]us fail!".format(setting, int_option))
+            print("set {} to {} fail!".format(setting, int_option))
             setting_num_Node.contents.release(setting_num_Node)
             return -1
         else:
-            print("set {} value [{}]us success.".format(setting, int_option))
+            print("set {} to {} success.".format(setting, int_option))
         setting_num_Node.contents.release(setting_num_Node)
         return 0
     
@@ -478,11 +475,11 @@ class Camera(object):
             return -1
         nRet = setting_bool_Node.contents.setValue(setting_bool_Node, bool(bool_option))
         if nRet != 0:
-            print("set {} [{}]us fail!".format(setting, bool_option))
+            print("set {} to {} failed!".format(setting, bool_option))
             setting_bool_Node.contents.release(setting_bool_Node)
             return -1
         else:
-            print("set {} value [{}]us success.".format(setting, bool_option))
+            print("set {} to {} success.".format(setting, bool_option))
         setting_bool_Node.contents.release(setting_bool_Node)
         return 0
 
