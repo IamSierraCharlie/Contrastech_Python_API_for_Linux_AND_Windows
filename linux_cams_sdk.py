@@ -3,8 +3,6 @@ from MVSDK import *  # only for the contrastech camera
 import numpy as np
 g_cameraStatusUserInfo = b"statusInfo"
 
-
-print('Testing only!')
 class Camera(object):
     def __init__(self, img_width, img_height, img_channels):
         # get the camera list
@@ -22,7 +20,7 @@ class Camera(object):
         self.connectCallBackFuncEx = connectCallBackEx(self.deviceLinkNotify)
         self.frameCallbackFunc = callbackFunc(self.onGetFrame)
 
-    @staticmethod
+    @staticmethod # this function reports the camera status.  It will output issues to the cmd prompt
     def deviceLinkNotify(connectArg, linkInfo):
         if EVType.offLine == connectArg.contents.m_event:
             print("camera is off line, userInfo [%s]" % c_char_p(linkInfo).value)
@@ -399,50 +397,92 @@ class Camera(object):
         # image_data = bytearray(string_at(rgbBuff, 3 * 608 * 608))
         #print('type', type(image_data))
 
-        final = np.reshape(np.frombuffer(bytearray(string_at(rgbBuff, self.img_channels * self.img_height * self.img_width)), dtype=np.uint8), (self.img_height, self.img_width,  self.img_channels))
+        final = np.reshape(np.frombuffer(bytearray(string_at(rgbBuff,
+                                                             self.img_channels * self.img_height * self.img_width)),
+                                         dtype=np.uint8), (self.img_height, self.img_width,  self.img_channels))
         return final
 
-    def set_setting(self, setting, option):
+
+    # the plan here is to create a single function that allows control over many aspects of the camera
+    # caveats - unable to set numbers - only settings
+    def change_setting(self, setting, option):
+        print('\n\n\nInstance is: {}'.format(type(option)))
+        if isinstance(option, int) and not isinstance(option, bool):
+            print('changing with settings num')
+            self.settings_num(setting, int_option=option)
+        elif isinstance(option, bytes):
+            print('changing with settings')
+            self.settings(setting, option)
+        elif isinstance(option, bool):
+            print('changing with settings_bool')
+            self.settings_bool(setting, option)
+
+        else:
+            print('unknown var {} from setting {} - unable to handle this'.format(option, setting))
+            exit()
+
+    def settings(self, setting, option):
         #######################################################
-        acquisitionEnumMode = pointer(GENICAM_EnumNode())
-        acquisitionEnumModeInfo = GENICAM_EnumNodeInfo()
-        acquisitionEnumModeInfo.pCamera = pointer(self.cam)
-        acquisitionEnumModeInfo.attrName = setting
-        nRet = GENICAM_createEnumNode(byref(acquisitionEnumModeInfo), byref(acquisitionEnumMode))
+        setting_char_EnumMode = pointer(GENICAM_EnumNode())
+        setting_char_EnumModeInfo = GENICAM_EnumNodeInfo()
+        setting_char_EnumModeInfo.pCamera = pointer(self.cam)
+        setting_char_EnumModeInfo.attrName = setting
+        nRet = GENICAM_createEnumNode(byref(setting_char_EnumModeInfo), byref(setting_char_EnumMode))
         if nRet != 0:
-            print("Setting acquisition mode failed!")
+            print("Unable to access {}".format(setting))
             # Release related resources
             self.image_source.contents.release(self.image_source)
             return -1
-        # change acquisition mode to continuous
-        print('change acquisition mode to continuous')
-        nRet = acquisitionEnumMode.contents.setValueBySymbol(acquisitionEnumMode, option)
+        # change setting_char_ mode to continuous
+        print('Changing {} to {}'.format(setting, option))
+        nRet = setting_char_EnumMode.contents.setValueBySymbol(setting_char_EnumMode, option)
         if nRet != 0:
-            print("FAILED - change acquisition mode to continuous")
+            print('Failed!')
             # Release related resources
-            acquisitionEnumMode.contents.release(acquisitionEnumMode)
+            setting_char_EnumMode.contents.release(setting_char_EnumMode)
             self.image_source.contents.release(self.image_source)  # this line dumps everything
             return -1
-        acquisitionEnumMode.contents.release(acquisitionEnumMode)
-
+        else:
+            print('Success!')
+        setting_char_EnumMode.contents.release(setting_char_EnumMode)
         #######################################################
 
-    def setExposureTime(self, dVal):  # almost straight from the contrastech demo
-        exposureTimeNode = pointer(GENICAM_DoubleNode())
-        exposureTimeNodeInfo = GENICAM_DoubleNodeInfo()
-        exposureTimeNodeInfo.pCamera = pointer(self.cam)
-        exposureTimeNodeInfo.attrName = b"ExposureTime"
-        nRet = GENICAM_createDoubleNode(byref(exposureTimeNodeInfo), byref(exposureTimeNode))
-        if (nRet != 0):
-            print("create ExposureTime Node fail!")
+    # TODO turn this into a function that servers all settings where numbers need to be changed
+    def settings_num(self, setting, int_option):  # almost straight from the contrastech demo
+        setting_num_Node = pointer(GENICAM_DoubleNode())
+        setting_num_NodeInfo = GENICAM_DoubleNodeInfo()
+        setting_num_NodeInfo.pCamera = pointer(self.cam)
+        setting_num_NodeInfo.attrName = setting
+        nRet = GENICAM_createDoubleNode(byref(setting_num_NodeInfo), byref(setting_num_Node))
+        if nRet != 0:
+            print("create {} Node fail!".format(setting))
             return -1
-        nRet = exposureTimeNode.contents.setValue(exposureTimeNode, c_double(dVal))
-        if (nRet != 0):
-            print("set ExposureTime value [%f]us fail!" % dVal)
-            exposureTimeNode.contents.release(exposureTimeNode)
+        nRet = setting_num_Node.contents.setValue(setting_num_Node, c_double(int_option))
+        if nRet != 0:
+            print("set {} [{}]us fail!".format(setting, int_option))
+            setting_num_Node.contents.release(setting_num_Node)
             return -1
         else:
-            print("set ExposureTime value [%f]us success." % dVal)
-        exposureTimeNode.contents.release(exposureTimeNode)
+            print("set {} value [{}]us success.".format(setting, int_option))
+        setting_num_Node.contents.release(setting_num_Node)
+        return 0
+    
+    def settings_bool(self, setting, bool_option):
+        setting_bool_Node = pointer(GENICAM_BoolNode())
+        setting_bool_NodeInfo = GENICAM_BoolNodeInfo()
+        setting_bool_NodeInfo.pCamera = pointer(self.cam)
+        setting_bool_NodeInfo.attrName = setting
+        nRet = GENICAM_createBoolNode(byref(setting_bool_NodeInfo), byref(setting_bool_Node))
+        if nRet != 0:
+            print("create {} Node fail!".format(setting))
+            return -1
+        nRet = setting_bool_Node.contents.setValue(setting_bool_Node, bool(bool_option))
+        if nRet != 0:
+            print("set {} [{}]us fail!".format(setting, bool_option))
+            setting_bool_Node.contents.release(setting_bool_Node)
+            return -1
+        else:
+            print("set {} value [{}]us success.".format(setting, bool_option))
+        setting_bool_Node.contents.release(setting_bool_Node)
         return 0
 
