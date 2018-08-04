@@ -168,6 +168,7 @@ class Camera(object):
         self.image_source.contents.release(self.image_source)
 
     def activate(self):
+        # connect to the camera
         acqCtrlInfo = GENICAM_AcquisitionControlInfo()
         acqCtrlInfo.pCamera = pointer(self.cam)
         self.acqCtrl = pointer(GENICAM_AcquisitionControl())
@@ -176,6 +177,7 @@ class Camera(object):
             print("create AcquisitionControl fail!")
             return -1
 
+        # create the streaming source
         print('creating a stream source')
         streamSourceInfo = GENICAM_StreamSourceInfo()
         streamSourceInfo.channelId = 0
@@ -185,14 +187,14 @@ class Camera(object):
         if nRet != 0:
             print("create image_source fail!")
             return -1
-
+        # attach grabbing
         nRet = self.image_source.contents.attachGrabbing(self.image_source, self.frameCallbackFunc)
         if nRet != 0:
             print("attachGrabbing fail!")
             self.image_source.contents.release(self.image_source)
             return -1
 
-        # Start the camera grabbing images
+        # Start grabbing images
         nRet = self.image_source.contents.startGrabbing(self.image_source, c_ulonglong(0),
                                                         c_int(GENICAM_EGrabStrategy.grabStrategySequential))
         if nRet != 0:
@@ -201,10 +203,10 @@ class Camera(object):
             self.image_source.contents.release(self.image_source)
             return -1
 
+        # detach from grabbing - this step is necessary in order to successfully grab images
         nRet = GENICAM_createAcquisitionControl(pointer(acqCtrlInfo), byref(self.acqCtrl))
         if nRet != 0:
             print("create AcquisitionControl fail!")
-            # 释放相关资源 - Release related resources
             self.image_source.contents.release(self.image_source)
             return -1
         nRet = self.image_source.contents.detachGrabbing(self.image_source, self.frameCallbackFunc)
@@ -248,7 +250,6 @@ class Camera(object):
         # print(datetime.datetime.now().strftime("%y%m%d%H%M%S"))
         nRet = self.image_source.contents.getFrame(self.image_source, byref(frame), c_uint(1000))
 
-        #print(current - self.t)
         if nRet != 0:
             print("SoftTrigger getFrame fail! timeOut [1000]ms")
             # Release related resources
@@ -269,11 +270,7 @@ class Camera(object):
         buffAddr = frame.contents.getImage(frame)
         frameBuff = c_buffer(b'\0', imageSize)
         memmove(frameBuff, c_char_p(buffAddr), imageSize)
-        # self.acqCtrl.contents.release(self.acqCtrl)
 
-        # current = time.perf_counter()
-
-        # Assigning parameters for transcoding
         convertParams = IMGCNV_SOpenParam()
         convertParams.dataSize = imageSize
         convertParams.height = frame.contents.getImageHeight(frame)
@@ -291,26 +288,8 @@ class Camera(object):
 
         # Release driver image cache
         frame.contents.release(frame)
-
-        # Save bmp pictures
-        #bmpInfoHeader = contras.BITMAPINFOHEADER()
-        #bmpFileHeader = contras.BITMAPFILEHEADER()
-
-        #uRgbQuadLen = 0
-        #rgbQuad = (contras.RGBQUAD * 256)()  # Palette information
         rgbBuff = c_buffer(b'\0', convertParams.height * convertParams.width * 3)
 
-        # If the image format is Mono8 no transcoding is required
-        #if convertParams.pixelForamt == EPixelType.gvspPixelMono8:
-        #	# Initialization palette rgbQuad in real applications rgbQuad only need to initialize once
-        #	for i in range(0, 256):
-        #		rgbQuad[i].rgbBlue = rgbQuad[i].rgbGreen = rgbQuad[i].rgbRed = i
-        #
-        #	uRgbQuadLen = sizeof(contras.RGBQUAD) * 256
-        #	bmpFileHeader.bfSize = sizeof(bmpFileHeader) + sizeof(bmpInfoHeader) + uRgbQuadLen + convertParams.dataSize
-        #	bmpInfoHeader.biBitCount = 8
-        #else:
-            # Transcoding => BGR24
         rgbSize = c_int()
         nRet = IMGCNV_ConvertToRGB24(cast(frameBuff, c_void_p), byref(convertParams), cast(rgbBuff, c_void_p), byref(rgbSize))
 
@@ -320,21 +299,11 @@ class Camera(object):
             self.image_source.contents.release(self.image_source)
             return -1
 
-        #bmpFileHeader.bfSize = sizeof(bmpFileHeader) + sizeof(bmpInfoHeader) + rgbSize.value
-        #bmpInfoHeader.biBitCount = 24
-
-        #print('rgbBuff', rgbBuff)  # rgbBuff <ctypes.c_char_Array_1108992 object at 0x7f95b888d2f0>
-        # image_data = bytearray(string_at(rgbBuff, 3 * 608 * 608))
-        #print('type', type(image_data))
-
         final = np.reshape(np.frombuffer(bytearray(string_at(rgbBuff,
                                                              self.img_channels * self.img_height * self.img_width)),
                                          dtype=np.uint8), (self.img_height, self.img_width,  self.img_channels))
         return final
 
-
-    # the plan here is to create a single function that allows control over many aspects of the camera
-    # caveats - unable to set numbers - only settings
     def change_setting(self, setting, option):
         print('\n\n\nInstance is: {}'.format(type(option)))
         if isinstance(option, int) and not isinstance(option, bool):  # booleans seem to go through here until
