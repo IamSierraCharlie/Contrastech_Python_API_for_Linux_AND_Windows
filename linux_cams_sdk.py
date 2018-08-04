@@ -20,6 +20,7 @@ class Camera(object):
         self.connectCallBackFunc = connectCallBack(self.deviceLinkNotify)
         self.connectCallBackFuncEx = connectCallBackEx(self.deviceLinkNotify)
         self.frameCallbackFunc = callbackFunc(self.onGetFrame)
+        self.create_camera_instance() # instantiated upon calling the camera Class
 
     @staticmethod # this function reports the camera status.  It will output issues to the cmd prompt
     def deviceLinkNotify(connectArg, linkInfo):
@@ -105,7 +106,6 @@ class Camera(object):
         return 0
 
     def openCamera(self):
-        # 连接相机
         nRet = self.cam.connect(self.cam, c_int(GENICAM_ECameraAccessPermission.accessPermissionControl))
         if nRet != 0:
             print("camera connect fail!")
@@ -168,7 +168,52 @@ class Camera(object):
         self.image_source.contents.release(self.image_source)
 
     def activate(self):
-        ## FIND CAMERA
+        acqCtrlInfo = GENICAM_AcquisitionControlInfo()
+        acqCtrlInfo.pCamera = pointer(self.cam)
+        self.acqCtrl = pointer(GENICAM_AcquisitionControl())
+        nRet = GENICAM_createAcquisitionControl(pointer(acqCtrlInfo), byref(self.acqCtrl))
+        if nRet != 0:
+            print("create AcquisitionControl fail!")
+            return -1
+
+        print('creating a stream source')
+        streamSourceInfo = GENICAM_StreamSourceInfo()
+        streamSourceInfo.channelId = 0
+        streamSourceInfo.pCamera = pointer(self.cam)
+        self.image_source = pointer(GENICAM_StreamSource())
+        nRet = GENICAM_createStreamSource(pointer(streamSourceInfo), byref(self.image_source))
+        if nRet != 0:
+            print("create image_source fail!")
+            return -1
+
+        nRet = self.image_source.contents.attachGrabbing(self.image_source, self.frameCallbackFunc)
+        if nRet != 0:
+            print("attachGrabbing fail!")
+            self.image_source.contents.release(self.image_source)
+            return -1
+
+        # Start the camera grabbing images
+        nRet = self.image_source.contents.startGrabbing(self.image_source, c_ulonglong(0),
+                                                        c_int(GENICAM_EGrabStrategy.grabStrategySequential))
+        if nRet != 0:
+            print("startGrabbing fail!")
+            # Release related resources
+            self.image_source.contents.release(self.image_source)
+            return -1
+
+        nRet = GENICAM_createAcquisitionControl(pointer(acqCtrlInfo), byref(self.acqCtrl))
+        if nRet != 0:
+            print("create AcquisitionControl fail!")
+            # 释放相关资源 - Release related resources
+            self.image_source.contents.release(self.image_source)
+            return -1
+        nRet = self.image_source.contents.detachGrabbing(self.image_source, self.frameCallbackFunc)
+        if nRet != 0:
+            print("detachGrabbing fail!")
+            self.image_source.contents.release(self.image_source)
+            return -1
+
+    def create_camera_instance(self):
         cameraCnt, cameraList = self.enumCameras()
         if cameraCnt is None:  # no camera handler
             print('No camera handler')
@@ -182,125 +227,11 @@ class Camera(object):
             print("vendor name   = " + str(camera.getVendorName(camera)))
             print("Model  name   = " + str(camera.getModelName(camera)))
             print("Serial number = " + str(camera.getSerialNumber(camera)))
-        self.cam = cameraList[0]  # this is tha actual camera
+        self.cam = cameraList[0]  # this is the actual camera
         # open the camera
         nRet = self.openCamera()  # opens the camera
         if nRet != 0:  # handles the camera open failure
             print("openCamera fail.")
-
-        acqCtrlInfo = GENICAM_AcquisitionControlInfo()
-        acqCtrlInfo.pCamera = pointer(self.cam)
-        self.acqCtrl = pointer(GENICAM_AcquisitionControl())
-        nRet = GENICAM_createAcquisitionControl(pointer(acqCtrlInfo), byref(self.acqCtrl))
-        if nRet != 0:
-            print("create AcquisitionControl fail!")
-            return -1
-
-        # Set trigger source to soft trigger
-        trigSourceEnumNode = self.acqCtrl.contents.triggerSource(self.acqCtrl)
-        nRet = trigSourceEnumNode.setValueBySymbol(byref(trigSourceEnumNode), b"Software")
-        if nRet != 0:
-            print("set TriggerSource value [Software] fail!")
-            # Release related resources
-            # Release related resources
-            trigSourceEnumNode.release(byref(trigSourceEnumNode))
-            self.acqCtrl.contents.release(self.acqCtrl)
-            return -1
-
-        # Need to release Node resources
-        trigSourceEnumNode.release(byref(trigSourceEnumNode))
-
-        # Set trigger mode
-        trigSelectorEnumNode = self.acqCtrl.contents.triggerSelector(self.acqCtrl)
-        nRet = trigSelectorEnumNode.setValueBySymbol(byref(trigSelectorEnumNode), b"FrameStart")
-        if nRet != 0:
-            print("set TriggerSelector value [FrameStart] fail!")
-            # Release related resources
-            trigSelectorEnumNode.release(byref(trigSelectorEnumNode))
-            self.acqCtrl.contents.release(self.acqCtrl)
-            return -1
-
-        # Node
-        # Need to release Node resources
-        trigSelectorEnumNode.release(byref(trigSelectorEnumNode))
-
-        # Turn on trigger mode
-        trigModeEnumNode = self.acqCtrl.contents.triggerMode(self.acqCtrl)
-        nRet = trigModeEnumNode.setValueBySymbol(byref(trigModeEnumNode), b"On")
-        if nRet != 0:
-            print("set TriggerMode value [On] fail!")
-            # 释放相关资源 - Release related resources
-            # Release related resources
-            trigModeEnumNode.release(byref(trigModeEnumNode))
-            self.acqCtrl.contents.release(self.acqCtrl)
-            return -1
-
-        # Need to release related resources
-        trigModeEnumNode.release(byref(trigModeEnumNode))
-        self.acqCtrl.contents.release(self.acqCtrl)
-
-        print('creating a stream source')
-        streamSourceInfo = GENICAM_StreamSourceInfo()
-        streamSourceInfo.channelId = 0
-        streamSourceInfo.pCamera = pointer(self.cam)
-        self.image_source = pointer(GENICAM_StreamSource())
-        nRet = GENICAM_createStreamSource(pointer(streamSourceInfo), byref(self.image_source))
-        if nRet != 0:
-            print("create image_source fail!")
-            return -1
-
-        acquisitionEnumMode = pointer(GENICAM_EnumNode())
-        acquisitionEnumModeInfo = GENICAM_EnumNodeInfo()
-        acquisitionEnumModeInfo.pCamera = pointer(self.cam)
-        acquisitionEnumModeInfo.attrName = b"AcquisitionMode"
-        nRet = GENICAM_createEnumNode(byref(acquisitionEnumModeInfo), byref(acquisitionEnumMode))
-        if nRet != 0:
-            print("Setting acquisition mode failed!")
-            # Release related resources
-            self.image_source.contents.release(self.image_source)
-            return -1
-        # change acquisition mode to continuous
-        print('change acquisition mode to continuous')
-        nRet = acquisitionEnumMode.contents.setValueBySymbol(acquisitionEnumMode, b"Continuous")
-        if nRet != 0:
-            print("FAILED - change acquisition mode to continuous")
-            # Release related resources
-            acquisitionEnumMode.contents.release(acquisitionEnumMode)
-            self.image_source.contents.release(self.image_source)  # this line dumps everything
-            return -1
-        acquisitionEnumMode.contents.release(acquisitionEnumMode)
-
-
-        nRet = self.image_source.contents.attachGrabbing(self.image_source, self.frameCallbackFunc)
-        if nRet != 0:
-            print("attachGrabbing fail!")
-            self.image_source.contents.release(self.image_source)
-            return -1
-
-        # Start the camera grabbing images
-        nRet = self.image_source.contents.startGrabbing(self.image_source, c_ulonglong(0),
-                                                        c_int(GENICAM_EGrabStrategy.grabStrategySequential))
-        if nRet != 0:
-            print("startGrabbing fail!")
-            #Release related resources
-            self.image_source.contents.release(self.image_source)
-            return -1
-
-        # this should create the necessary control to do the grabbing with "software"
-        #acqCtrlInfo = GENICAM_AcquisitionControlInfo()
-        #acqCtrlInfo.pCamera = pointer(self.cam)
-        #self.acqCtrl = pointer(GENICAM_AcquisitionControl())
-        nRet = GENICAM_createAcquisitionControl(pointer(acqCtrlInfo), byref(self.acqCtrl))
-        if nRet != 0:
-            print("create AcquisitionControl fail!")
-            # 释放相关资源 - Release related resources
-            self.image_source.contents.release(self.image_source)
-            return -1
-        nRet = self.image_source.contents.detachGrabbing(self.image_source, self.frameCallbackFunc)
-        if nRet != 0:
-            print("detachGrabbing fail!")
-            self.image_source.contents.release(self.image_source)
-            return -1
 
     def grab_image(self):
         trigSoftwareCmdNode = self.acqCtrl.contents.triggerSoftware(self.acqCtrl)
@@ -412,7 +343,7 @@ class Camera(object):
             self.settings_num(setting, int_option=option)
         elif isinstance(option, bytes):
             print('changing with settings')
-            self.settings(setting, option)
+            self.settings_char(setting, option)
         elif isinstance(option, bool):
             print('changing with settings_bool')
             self.settings_bool(setting, option)
@@ -421,7 +352,7 @@ class Camera(object):
             print('unknown var {} from setting {} - unable to handle this'.format(option, setting))
             exit()
 
-    def settings(self, setting, option):
+    def settings_char(self, setting, option):
         setting_char_EnumMode = pointer(GENICAM_EnumNode())
         setting_char_EnumModeInfo = GENICAM_EnumNodeInfo()
         setting_char_EnumModeInfo.pCamera = pointer(self.cam)
@@ -483,3 +414,4 @@ class Camera(object):
         setting_bool_Node.contents.release(setting_bool_Node)
         return 0
 
+# TODO get some settings from the camera - i.e. sensor width and height for correctly setting w / h and offset
