@@ -5,7 +5,7 @@ g_cameraStatusUserInfo = b"statusInfo"
 
 
 class Camera(object):
-    def __init__(self, img_width, img_height, img_channels):
+    def __init__(self, sensor_width, sensor_height, img_width, img_height, img_channels):
         # get the camera list
         self.img_width = img_width
         self.img_height = img_height
@@ -17,10 +17,15 @@ class Camera(object):
         self.t = None
         self.info = None
         self.acqCtrl = None
+        self.max_width = None
+        self.max_height = None
+
         self.connectCallBackFunc = connectCallBack(self.deviceLinkNotify)
         self.connectCallBackFuncEx = connectCallBackEx(self.deviceLinkNotify)
         self.frameCallbackFunc = callbackFunc(self.onGetFrame)
-        self.create_camera_instance() # instantiated upon calling the camera Class
+        self.create_camera_instance()  # instantiated upon calling the camera Class
+        offset_x, offset_y = self.check_image_dimension_validity(sensor_width, sensor_height, img_width, img_height)
+        self.set_roi(self.cam, offset_x, offset_y, img_width, img_height)
 
     @staticmethod # this function reports the camera status.  It will output issues to the cmd prompt
     def deviceLinkNotify(connectArg, linkInfo):
@@ -229,6 +234,7 @@ class Camera(object):
             print("vendor name   = " + str(camera.getVendorName(camera)))
             print("Model  name   = " + str(camera.getModelName(camera)))
             print("Serial number = " + str(camera.getSerialNumber(camera)))
+
         self.cam = cameraList[0]  # this is the actual camera
         # open the camera
         nRet = self.openCamera()  # opens the camera
@@ -384,3 +390,163 @@ class Camera(object):
         return 0
 
 # TODO get some settings from the camera - i.e. sensor width and height for correctly setting w / h and offset
+
+    @staticmethod
+    def set_roi(camera, OffsetX, OffsetY, nWidth, nHeight):  # another example from the Contrastech Demo
+        # 获取原始的宽度
+        widthMaxNode = pointer(GENICAM_IntNode())
+        widthMaxNodeInfo = GENICAM_IntNodeInfo()
+        widthMaxNodeInfo.pCamera = pointer(camera)
+        widthMaxNodeInfo.attrName = b"WidthMax"
+        nRet = GENICAM_createIntNode(byref(widthMaxNodeInfo), byref(widthMaxNode))
+        if (nRet != 0):
+            print("create WidthMax Node fail!")
+            return -1
+
+        oriWidth = c_longlong()
+        nRet = widthMaxNode.contents.getValue(widthMaxNode, byref(oriWidth))
+        if (nRet != 0):
+            print("widthMaxNode getValue fail!")
+            # 释放相关资源 - Release related resources
+            widthMaxNode.contents.release(widthMaxNode)
+            return -1
+
+            # 释放相关资源 - Release related resources
+        widthMaxNode.contents.release(widthMaxNode)
+
+        # 获取原始的高度
+        heightMaxNode = pointer(GENICAM_IntNode())
+        heightMaxNodeInfo = GENICAM_IntNodeInfo()
+        heightMaxNodeInfo.pCamera = pointer(camera)
+        heightMaxNodeInfo.attrName = b"HeightMax"
+        nRet = GENICAM_createIntNode(byref(heightMaxNodeInfo), byref(heightMaxNode))
+        if (nRet != 0):
+            print("create HeightMax Node fail!")
+            return -1
+
+        oriHeight = c_longlong()
+        nRet = heightMaxNode.contents.getValue(heightMaxNode, byref(oriHeight))
+        if (nRet != 0):
+            print("heightMaxNode getValue fail!")
+            # 释放相关资源 - Release related resources
+            heightMaxNode.contents.release(heightMaxNode)
+            return -1
+
+        # 释放相关资源 - Release related resources
+        heightMaxNode.contents.release(heightMaxNode)
+
+        # 检验参数
+        if (oriWidth.value < (OffsetX + nWidth)) or (oriHeight.value < (OffsetY + nHeight)):
+            print("please check input param!")
+            return -1
+
+        # 设置宽度
+        widthNode = pointer(GENICAM_IntNode())
+        widthNodeInfo = GENICAM_IntNodeInfo()
+        widthNodeInfo.pCamera = pointer(camera)
+        widthNodeInfo.attrName = b"Width"
+        nRet = GENICAM_createIntNode(byref(widthNodeInfo), byref(widthNode))
+        if (nRet != 0):
+            print("create Width Node fail!")
+            return -1
+
+        nRet = widthNode.contents.setValue(widthNode, c_longlong(nWidth))
+        if (nRet != 0):
+            print("widthNode setValue [%d] fail!" % (nWidth))
+            # 释放相关资源 - Release related resources
+            widthNode.contents.release(widthNode)
+            return -1
+
+            # 释放相关资源 - Release related resources
+        widthNode.contents.release(widthNode)
+
+        # 设置高度
+        heightNode = pointer(GENICAM_IntNode())
+        heightNodeInfo = GENICAM_IntNodeInfo()
+        heightNodeInfo.pCamera = pointer(camera)
+        heightNodeInfo.attrName = b"Height"
+        nRet = GENICAM_createIntNode(byref(heightNodeInfo), byref(heightNode))
+        if (nRet != 0):
+            print("create Height Node fail!")
+            return -1
+
+        nRet = heightNode.contents.setValue(heightNode, c_longlong(nHeight))
+        if (nRet != 0):
+            print("heightNode setValue [%d] fail!" % (nHeight))
+            # 释放相关资源 - Release related resources
+            heightNode.contents.release(heightNode)
+            return -1
+
+            # 释放相关资源 - Release related resources
+        heightNode.contents.release(heightNode)
+
+        # 设置OffsetX
+        OffsetXNode = pointer(GENICAM_IntNode())
+        OffsetXNodeInfo = GENICAM_IntNodeInfo()
+        OffsetXNodeInfo.pCamera = pointer(camera)
+        OffsetXNodeInfo.attrName = b"OffsetX"
+        nRet = GENICAM_createIntNode(byref(OffsetXNodeInfo), byref(OffsetXNode))
+        if (nRet != 0):
+            print("create OffsetX Node fail!")
+            return -1
+
+        nRet = OffsetXNode.contents.setValue(OffsetXNode, c_longlong(OffsetX))
+        if (nRet != 0):
+            print("OffsetX setValue [%d] fail!" % (OffsetX))
+            # 释放相关资源 - Release related resources
+            OffsetXNode.contents.release(OffsetXNode)
+            return -1
+
+            # 释放相关资源 - Release related resources
+        OffsetXNode.contents.release(OffsetXNode)
+
+        # 设置OffsetY
+        OffsetYNode = pointer(GENICAM_IntNode())
+        OffsetYNodeInfo = GENICAM_IntNodeInfo()
+        OffsetYNodeInfo.pCamera = pointer(camera)
+        OffsetYNodeInfo.attrName = b"OffsetY"
+        nRet = GENICAM_createIntNode(byref(OffsetYNodeInfo), byref(OffsetYNode))
+        if (nRet != 0):
+            print("create OffsetY Node fail!")
+            return -1
+
+        nRet = OffsetYNode.contents.setValue(OffsetYNode, c_longlong(OffsetY))
+        if (nRet != 0):
+            print("OffsetY setValue [%d] fail!" % (OffsetY))
+            # 释放相关资源 - Release related resources
+            OffsetYNode.contents.release(OffsetYNode)
+            return -1
+
+            # 释放相关资源 - Release related resources
+        OffsetYNode.contents.release(OffsetYNode)
+        return 0
+
+    # the reason for this function is because the offsets for the mars camera seem to need to be a number
+    # divisible by 16.  This function takes care of that for the basic dimensions that I use. It may not
+    # work for other people...
+
+    @staticmethod
+    def check_image_dimension_validity(sensor_width, sensor_height, img_width, img_height):
+        if not img_height == sensor_height:
+            adjusted_offset_height = sensor_height - img_height
+            div_check_y = adjusted_offset_height / 16  # we are checking that the offset is divisible by 16
+            while not div_check_y.is_integer():
+                print('centering height offset')
+                adjusted_offset_height -= 1
+                div_check_y = adjusted_offset_height / 16
+            offsetY = adjusted_offset_height / 2
+        else:
+            offsetY = 0
+        if not img_width == sensor_width:
+            adjusted_offset_width = sensor_width - img_width
+            div_check_x = adjusted_offset_width / 16  # we are checking that the offset is divisible by 16
+            while not div_check_x.is_integer():
+                print('centering width offset')
+                adjusted_offset_width -= 1
+                div_check_x = adjusted_offset_width / 16
+            offsetX = adjusted_offset_width / 2
+        else:
+            offsetX = 0
+        print('final X offset is {}'.format(int(offsetX)))
+        print('final Y offset is {}'.format(int(offsetY)))
+        return int(offsetY), int(offsetX)
