@@ -23,3 +23,8 @@ Contrastech provided a very basic demo and I have only used that demo to make wh
 ### Prerequisites
 - An install of Python on a Linux Operating System ( I used Anaconda with Python 3.6 on Ubuntu 16.04  )
 - Python Modules -> c_types, opencv2, numpy
+
+### Working Example
+
+Here is my dog Pip
+![working_example](https://user-images.githubusercontent.com/10386637/43674828-ce240cb2-981c-11e8-9265-56a9268cf157.png)
