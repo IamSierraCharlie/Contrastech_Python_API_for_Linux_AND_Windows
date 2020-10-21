@@ -8,11 +8,12 @@ not been able to find anything that works for Linux for Python that allows grabb
 Contrastech was good enough to provide an example of some code that grabbed images and saved them as a BMP.  This code I have written is
 very basic, but allows grabbing of an numpy nd.array style image.
 It should be noted that I have fumbled my way to this point to get some working code - I do not profess to be an expert.  My reason for
-adding this repo is in the hope that some thgat others may be able to benefit from it as well as contribute to a better version of the
+adding this repo is in the hope that some that others may be able to benefit from it as well as contribute to a better version of the
 code.  This SDK uses c_types to interface with the dll which is provided by Contrastech.  I have very limited experience with c_types in Python 
 
 ### Known working cameras - tested and confirmed
 - Mars1300-210uc
+Other Mars cameras from Contrastech should work also.
 
 If you own one of these cameras and work in Linux and can use this code, then please do so.  Also, please contribute anything you feel to be of benefit.
 ### Example use
