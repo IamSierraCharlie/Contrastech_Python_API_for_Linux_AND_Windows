@@ -24,6 +24,7 @@ Contrastech provided a very basic demo and I have only used that demo to make wh
 ### Prerequisites
 - An install of Python on a Linux Operating System ( I used Anaconda with Python 3.6 on Ubuntu 16.04  )
 - Python Modules -> c_types, opencv2, numpy
+- The Contrastech SDK - this includes the driver required to run the camera in Linux and can be found at http://contrastech.com/content/?906.html
 
 ### Working Example
 
