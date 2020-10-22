@@ -22,11 +22,18 @@ Essentially, I have historically created an instance of the camera, activated th
 Contrastech provided a very basic demo and I have only used that demo to make what is provided. 
 
 ### Prerequisites
-- An install of Python on a Linux Operating System ( I used Anaconda with Python 3.6 on Ubuntu 16.04  )
+- An install of Python on a Linux Operating System (I used Anaconda with Python 3.6 on Ubuntu 16.04  )
 - Python Modules -> c_types, opencv2, numpy
-- The Contrastech SDK - this includes the driver required to run the camera in Linux and can be found at http://contrastech.com/content/?906.html
+- The Contrastech SDK (aka iCentral) - this includes the driver required to run the camera in Linux and can be found at http://contrastech.com/content/?906.html
+
+### Known Issues
+- the version of opencv to install should be from the menpo channel - install with 'conda install -c menpo opencv3'
+- the software and driver from ContrasTech is only known to work up to Ubuntu 16.04.  I have checked with the support 
+team (October 2020) and they confirm this.  The main issue is that the driver won't build on kernel versions beyond 
+what is offered in newer versions of Ubuntu.
+- my code writing is crap - yes I know.  I cannot commit the time I want to for these things, but I'm working on it.  
+Constructive criticisms is always appreciated...
 
 ### Working Example
-
 Here is my dog Pip
 ![working_example](https://user-images.githubusercontent.com/10386637/43674828-ce240cb2-981c-11e8-9265-56a9268cf157.png)

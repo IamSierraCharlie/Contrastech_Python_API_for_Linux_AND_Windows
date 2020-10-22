@@ -21,7 +21,7 @@ camera.change_setting(setting=b'AcquisitionMode', option=b'Continuous')
 camera.change_setting(setting=b"TriggerMode", option=b'On')
 camera.activate()
 camera.change_setting(setting=b"ExposureAuto", option=b'Off')
-camera.change_setting(setting=b"ExposureTime", option=5000)  # will fail if ExposureAuto is not set to Off First
+camera.change_setting(setting=b"ExposureTime", option=15000)  # will fail if ExposureAuto is not set to Off First
 
 while True:
     # image = camera.grab_image()
