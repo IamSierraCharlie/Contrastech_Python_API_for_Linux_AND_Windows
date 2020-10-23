@@ -31,9 +31,24 @@ Contrastech provided a very basic demo and I have only used that demo to make wh
 - the software and driver from ContrasTech is only known to work up to Ubuntu 16.04.  I have checked with the support 
 team (October 2020) and they confirm this.  The main issue is that the driver won't build on kernel versions beyond 
 what is offered in newer versions of Ubuntu.
+- Program is likely to stop working when the Kernel is updated.  You need to reinstall the driver to the current kernel 
+for it to work properly.  A giveaway for this issue is that the program complains that it is unable to load the driver.  
+The fix is to reinstall iCentral which will compile the module and install again. 
 - my code writing is crap - yes I know.  I cannot commit the time I want to for these things, but I'm working on it.  
 Constructive criticisms is always appreciated...
+
+### Future plans
+- my reason for this code was that I took high speed images on a production line for quality checks using Tensorflow.  I
+ran this in Windows for the most part due to this driver issue.  I did have success in getting my program to 
+work in Linux although I never put it into production.  I plan to make some changes to this code so that the camera will 
+accept a signal from an external sensor to time the image grabs as opposed to just grabbing an image every
+N seconds.  Timing is everything ona production line!  If you are doing something similar, I'd be keen to hear about it!
+
+- Other cool things - if you could get it to work on a Raspberry Pi, you could use Tensorflow to read speed signs or stop signs...
+- My focus is on a production line though...
 
 ### Working Example
 Here is my dog Pip
 ![working_example](https://user-images.githubusercontent.com/10386637/43674828-ce240cb2-981c-11e8-9265-56a9268cf157.png)
+
+
