@@ -11,17 +11,18 @@ channels = 3
 # this is here to show that you probably should set the framerate of the camera and the framerate
 # of the cv2 window the same.  I had problems here and this appeared to resolve them
 
+# ToDo:  make changes here so you can set more settings
 target_framerate = 10
 framerate_cv2_window = int(1000/target_framerate)
 camera = linux_cams_sdk.Camera(sensor_width, sensor_height, img_width, img_height, channels)
-camera.change_setting(setting=b"TriggerSource", option=b'Software')
-camera.change_setting(setting=b"TriggerSelector", option=b'FrameStart')
-camera.change_setting(setting=b'AcquisitionMode', option=b'Continuous')
+camera.change_setting(setting="TriggerSource", option='Software')
+camera.change_setting(setting="TriggerSelector", option='FrameStart')
+camera.change_setting(setting='AcquisitionMode', option='Continuous')
 # activates the camera - light should start flashing on the back
-camera.change_setting(setting=b"TriggerMode", option=b'On')
+camera.change_setting(setting="TriggerMode", option='On')
 camera.activate()
-camera.change_setting(setting=b"ExposureAuto", option=b'Off')
-camera.change_setting(setting=b"ExposureTime", option=15000)  # will fail if ExposureAuto is not set to Off First
+camera.change_setting(setting="ExposureAuto", option='Off')
+camera.change_setting(setting="ExposureTime", option=15000)  # will fail if ExposureAuto is not set to Off First
 
 while True:
     # image = camera.grab_image()
