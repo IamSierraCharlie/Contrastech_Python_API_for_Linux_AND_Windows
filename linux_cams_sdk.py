@@ -276,7 +276,6 @@ class Camera(object):
         buffAddr = frame.contents.getImage(frame)
         frameBuff = c_buffer(b'\0', imageSize)
         memmove(frameBuff, c_char_p(buffAddr), imageSize)
-
         convertParams = IMGCNV_SOpenParam()
         convertParams.dataSize = imageSize
         convertParams.height = frame.contents.getImageHeight(frame)
@@ -285,17 +284,16 @@ class Camera(object):
         convertParams.paddingY = frame.contents.getImagePaddingY(frame)
         convertParams.pixelForamt = frame.contents.getImagePixelFormat(frame)
 
-        #print('dataSize', imageSize)
-        #print('height', frame.contents.getImageHeight(frame))
-        #print('width', frame.contents.getImageWidth(frame))
-        #print('paddingX', frame.contents.getImagePaddingX(frame))
-        #print('paddingY', frame.contents.getImagePaddingY(frame))
-        #print('pixelFormat', frame.contents.getImagePixelFormat(frame))
+        print('dataSize', imageSize)
+        print('height', frame.contents.getImageHeight(frame))
+        print('width', frame.contents.getImageWidth(frame))
+        print('paddingX', frame.contents.getImagePaddingX(frame))
+        print('paddingY', frame.contents.getImagePaddingY(frame))
+        print('pixelFormat', frame.contents.getImagePixelFormat(frame))
 
         # Release driver image cache
         frame.contents.release(frame)
         rgbBuff = c_buffer(b'\0', convertParams.height * convertParams.width * 3)
-
         rgbSize = c_int()
         nRet = IMGCNV_ConvertToRGB24(cast(frameBuff, c_void_p), byref(convertParams), cast(rgbBuff, c_void_p), byref(rgbSize))
 
@@ -312,14 +310,15 @@ class Camera(object):
 
     def change_setting(self, setting, option):
         print('\n\n\nInstance is: {}'.format(type(option)))
-        if isinstance(option, int) and not isinstance(option, bool):  # booleans seem to go through here until
-            # this line was corrected
+        #option = option.encode()
+        setting = setting.encode()
+        if isinstance(option, int) and not isinstance(option, bool):  # A Number
             print('changing with settings num')
             self.settings_num(setting, int_option=option)
-        elif isinstance(option, bytes):
-            print('changing with settings')
-            self.settings_char(setting, option)
-        elif isinstance(option, bool):
+        elif isinstance(option, str):  # A string - encode to bytes
+            print('changing with settings_str')
+            self.settings_str(setting, option.encode())
+        elif isinstance(option, bool):  # A Boolean
             print('changing with settings_bool')
             self.settings_bool(setting, option)
 
@@ -327,7 +326,7 @@ class Camera(object):
             print('unknown var {} from setting {} - unable to handle this'.format(option, setting))
             exit()
 
-    def settings_char(self, setting, option):
+    def settings_str(self, setting, option):
         setting_char_EnumMode = pointer(GENICAM_EnumNode())
         setting_char_EnumModeInfo = GENICAM_EnumNodeInfo()
         setting_char_EnumModeInfo.pCamera = pointer(self.cam)
