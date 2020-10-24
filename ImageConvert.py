@@ -19,11 +19,11 @@ def enum(**enums):
 
 # ImageConvert.h => enum tagIMGCNV_EErr
 IMGCNV_EErr = enum(
-                      IMGCNV_SUCCESS = 0,
-                      IMGCNV_ILLEGAL_PARAM = 1,
-                      IMGCNV_ERR_ORDER = 2,
-                      IMGCNV_NO_MEMORY = 3,
-                      IMGCNV_NOT_SUPPORT = 4,
+                      IMGCNV_SUCCESS=0,
+                      IMGCNV_ILLEGAL_PARAM=1,
+                      IMGCNV_ERR_ORDER=2,
+                      IMGCNV_NO_MEMORY=3,
+                      IMGCNV_NOT_SUPPORT=4,
                       )
 
 # ImageConvert.h => struct tagIMGCNV_SOpenParam
@@ -34,14 +34,17 @@ class IMGCNV_SOpenParam(Structure):
                 ('paddingX', c_int),
                 ('paddingY', c_int),
                 ('dataSize', c_int),
-                ('pixelForamt', c_uint),
+                ('pixelFormat', c_uint),
                 ]
 
-# ImageConvert.h => IMGCNV_ConvertToBGR24(unsigned char* pSrcData, IMGCNV_SOpenParam* pOpenParam, unsigned char* pDstData, int* pDstDataSize)
+# ImageConvert.h => IMGCNV_ConvertToBGR24(unsigned char* pSrcData, IMGCNV_SOpenParam* pOpenParam, unsigned char*
+# pDstData, int* pDstDataSize)
 IMGCNV_ConvertToBGR24 = ImageConvertdll.IMGCNV_ConvertToBGR24
 
-# ImageConvert.h => IMGCNV_ConvertToRGB24(unsigned char* pSrcData, IMGCNV_SOpenParam* pOpenParam, unsigned char* pDstData, int* pDstDataSize)
+# ImageConvert.h => IMGCNV_ConvertToRGB24(unsigned char* pSrcData, IMGCNV_SOpenParam* pOpenParam, unsigned char*
+# pDstData, int* pDstDataSize)
 IMGCNV_ConvertToRGB24 = ImageConvertdll.IMGCNV_ConvertToRGB24
 
-# ImageConvert.h => IMGCNV_ConvertToMono8(unsigned char* pSrcData, IMGCNV_SOpenParam* pOpenParam, unsigned char* pDstData, int* pDstDataSize)
+# ImageConvert.h => IMGCNV_ConvertToMono8(unsigned char* pSrcData, IMGCNV_SOpenParam* pOpenParam, unsigned char*
+# pDstData, int* pDstDataSize)
 IMGCNV_ConvertToMono8 = ImageConvertdll.IMGCNV_ConvertToMono8
