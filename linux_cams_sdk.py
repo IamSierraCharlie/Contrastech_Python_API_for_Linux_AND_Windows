@@ -35,26 +35,7 @@ class Camera(object):
 		elif EVType.onLine == connect_arg.contents.m_event:
 			print("camera is on line, userInfo [%s]" % c_char_p(link_info).value)
 
-	@staticmethod
-	def enumerate_cameras():
-		system = pointer(GENICAM_System())
-		n_ret = GENICAM_getSystemInstance(byref(system))
-		if n_ret != 0:
-			print("getSystemInstance fail!")
-			return None, None
 
-		camera_list = pointer(GenicamCamera())
-		camera_cnt = c_uint()
-		n_ret = system.contents.discovery(system, byref(camera_list), byref(camera_cnt), c_int(GENICAM_EProtocolType.typeAll))
-		if n_ret != 0:
-			print("discovery fail!")
-			return None, None
-		elif camera_cnt.value < 1:
-			print("discovery no camera!")
-			return None, None
-		else:
-			print("cameraCnt: " + str(camera_cnt.value))
-			return camera_cnt.value, camera_list
 
 	@staticmethod
 	def on_get_frame(frame):
@@ -131,12 +112,10 @@ class Camera(object):
 		if n_ret != 0:
 			print("unsubscribeCameraStatus fail!")
 			return -1
-
 		n_ret = self.cam.disConnect(byref(self.cam))
 		if n_ret != 0:
 			print("disConnect camera fail!")
 			return -1
-
 		return 0
 
 	@staticmethod
@@ -158,12 +137,12 @@ class Camera(object):
 			self.image_source.contents.release(self.image_source)
 			return -1
 		# Turn off trigger mode - camera light should stop flashing
-		trigModeEnumNode = self.acqCtrl.contents.triggerMode(self.acqCtrl)
-		n_ret = trigModeEnumNode.setValueBySymbol(byref(trigModeEnumNode), b"Off")
+		trig_mode_enum_node = self.acqCtrl.contents.triggerMode(self.acqCtrl)
+		n_ret = trig_mode_enum_node.setValueBySymbol(byref(trig_mode_enum_node), b"Off")
 		if n_ret != 0:
 			print("set TriggerMode value [On] fail!")
 			# Release related resources
-			trigModeEnumNode.release(byref(trigModeEnumNode))
+			trig_mode_enum_node.release(byref(trig_mode_enum_node))
 			self.acqCtrl.contents.release(self.acqCtrl)
 			return -1
 
@@ -222,6 +201,73 @@ class Camera(object):
 			self.image_source.contents.release(self.image_source)
 			return -1
 
+	@staticmethod
+	def enumerate_cameras():
+		system = pointer(GENICAM_System())
+		n_ret = GENICAM_getSystemInstance(byref(system))
+		if n_ret != 0:
+			print("getSystemInstance fail!")
+			return None, None
+		camera_list = pointer(GenicamCamera())
+		camera_cnt = c_uint()
+		n_ret = system.contents.discovery(system, byref(camera_list), byref(camera_cnt),
+		                                  c_int(GENICAM_EProtocolType.typeAll))
+		if n_ret != 0:
+			print("discovery fail!")
+			return None, None
+		elif camera_cnt.value < 1:
+			print("No camera found - have you installed the iCentral software?")
+			print("If your kernel has been updated lately, you may need to reinstall")
+			return None, None
+		else:
+			print("cameraCnt: " + str(camera_cnt.value))
+			# try get cam info here
+			return camera_cnt.value, camera_list
+
+	@staticmethod
+	def get_usb_info(camera):
+		# This is test code and I'm not certain of the benefit as yet
+		print("GETTING USB INTERFACE INFO!!")
+		#usb_camera = pointer(GenicamCamera())
+		#usb_interface = pointer(GenicamUsbInterface())
+		#usb_interface_info = GenicamUsbInterfaceInfo()
+		#usb_interface_info.pCamera =
+		#n_ret = GENICAM_createUsbInterface(byref(usb_interface_info), byref(camera))
+		#if n_ret != 0:
+	#		print("Failed to get USB interface info")
+	#		usb_interface.contents.release(usb_interface)
+	#	print(usb_interface.contents.getDescription(usb_interface))
+	#	print(usb_interface.contents.getVendorID(usb_interface))
+	#	print(usb_interface.contents.getDeviceID(usb_interface))
+	#	print(usb_interface.contents.getSubsystemID(usb_interface))
+	#	print(usb_interface.contents.getRevision(usb_interface))
+	#	usb_interface.contents.release(usb_interface)
+		print("GETTING USB CAMERA INFO!!")
+		# usb_camera = pointer(camera)
+		usb_camera = pointer(GenicamUsbCamera())
+		usb_camera_info = GenicamUsbCameraInfo()
+		usb_camera_info.pCamera = pointer(camera)
+		n_ret = GENICAM_createUsbCamera(byref(usb_camera_info), byref(usb_camera))
+		if n_ret != 0:
+			print("Failed to get USB interface info")
+			usb_camera.contents.release(usb_camera)
+		print("ConfigurationValid: " + str(usb_camera.contents.getConfigurationValid(usb_camera))) # if this is nothing, then I think its fine...
+		print("GenCPVersion: " + usb_camera.contents.getGenCPVersion(usb_camera).decode("utf-8"))
+		print("U3VVersion: " + usb_camera.contents.getU3VVersion(usb_camera).decode("utf-8"))
+		print("DeviceGUID: " + usb_camera.contents.getDeviceGUID(usb_camera).decode("utf-8"))
+		print("FamilyName: " + usb_camera.contents.getFamilyName(usb_camera).decode("utf-8"))
+		print("U3VSerialNumber: " + usb_camera.contents.getU3VSerialNumber(usb_camera).decode("utf-8"))
+		print("Speeds -> negative number means unsupported, where as zero is supported?")
+		print("LowSpeedSupported: " + str(usb_camera.contents.isLowSpeedSupported(usb_camera)))
+		print("FullSpeedSupported: " + str(usb_camera.contents.isFullSpeedSupported(usb_camera)))
+		print("HighSpeedSupported " + str(usb_camera.contents.isHighSpeedSupported(usb_camera)))
+		print("SuperSpeedSupported " + str(usb_camera.contents.isSuperSpeedSupported(usb_camera)))
+		print("Speed " + usb_camera.contents.getSpeed(usb_camera).decode("utf-8"))
+		print("MaxPower " + usb_camera.contents.getMaxPower(usb_camera).decode("utf-8"))
+		print("DriverInstalled " + str(usb_camera.contents.isDriverInstalled(usb_camera)))
+		input("Press Enter to continue...")
+		usb_camera.contents.release(usb_camera)
+
 	def create_camera_instance(self):
 		camera_count, camera_list = self.enumerate_cameras()
 		if camera_count is None:  # no camera handler
@@ -241,15 +287,17 @@ class Camera(object):
 			# print("XML = " + str(camera.getSpeed(camera)))
 		time.sleep(3)
 		self.cam = camera_list[0]  # this is the actual camera
+		self.get_usb_info(self.cam)
+
 		# open the camera
+		# query this camera?
+
 		n_ret = self.open_camera()  # opens the camera
 		if n_ret != 0:  # handles the camera open failure
 			print("openCamera fail.")
 		else:
 			print("Camera Opened")
-			# get some info about the camera
-			system = pointer(GenicamCamera())
-			n_ret = GENICAM_getSystemInstance(byref(system))
+
 
 	def grab_image(self):
 		trig_software_cmd_node = self.acqCtrl.contents.triggerSoftware(self.acqCtrl)

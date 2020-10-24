@@ -29,7 +29,7 @@ while True:
     corrected_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     cv2.imshow('Contrastech Mars USB3 Vision Camera Test', corrected_image)
     k = cv2.waitKey(framerate_cv2_window)
-    print(k)
+    #print(k)
     if k == 1048603:  # Esc key to stop
         # camera.change_setting(setting=b"TriggerMode", option=b'Off')
         camera.deactivate()

@@ -215,8 +215,11 @@ class GENICAM_System(Structure):
 
 GENICAM_System_addRef = eval('CFUNCTYPE')(c_int, POINTER(GENICAM_System))
 GENICAM_System_release = eval('CFUNCTYPE')(c_int, POINTER(GENICAM_System))
-GENICAM_System_discovery = eval('CFUNCTYPE')(c_int, POINTER(GENICAM_System), POINTER(POINTER(GenicamCamera)), \
-                                             POINTER(c_uint), c_int)
+GENICAM_System_discovery = eval('CFUNCTYPE')(c_int,
+                                             POINTER(GENICAM_System),
+                                             POINTER(POINTER(GenicamCamera)),
+                                             POINTER(c_uint),
+                                             c_int)
 GENICAM_System_getCamera = eval('CFUNCTYPE')(POINTER(GenicamCamera), POINTER(GENICAM_System), c_char_p)
 GENICAM_System_getVersion = eval('CFUNCTYPE')(c_char_p, POINTER(GENICAM_System))
 
@@ -669,7 +672,7 @@ GenicamUsbCamera._fields_ = [
 
 class GenicamUsbCameraInfo(Structure):
 	_fields_ = [
-		('pCamera', POINTER(GenicamCamera)),
+		('pCamera', POINTER(GenicamCamera)),  # this was changed added Usb
 		('reserved', c_uint * 31),
 	]
 
