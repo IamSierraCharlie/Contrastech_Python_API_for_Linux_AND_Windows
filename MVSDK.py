@@ -1028,7 +1028,8 @@ class GenicamAcquisitionControlInfo(Structure):
 	]
 
 
-# SDK.h => GENICAM_createAcquisitionControl(GENICAM_AcquisitionControlInfo*pAcquisitionControlInfo, GENICAM_AcquisitionControl** ppAcquisitionControl)
+# SDK.h => GENICAM_createAcquisitionControl(GENICAM_AcquisitionControlInfo*pAcquisitionControlInfo,
+# GENICAM_AcquisitionControl** ppAcquisitionControl)
 GENICAM_createAcquisitionControl = MVSDKdll.GENICAM_createAcquisitionControl
 
 # SDK.h => enum GENICAM_EConfigSet
