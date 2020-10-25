@@ -1177,13 +1177,12 @@ class GenicamDeviceControl(Structure):
 GENICAM_DeviceControl_addRef = eval('CFUNCTYPE')(c_int, POINTER(GenicamDeviceControl))
 GENICAM_DeviceControl_release = eval('CFUNCTYPE')(c_int, POINTER(GenicamDeviceControl))
 GENICAM_DeviceControl_deviceUserID = eval('CFUNCTYPE')(GENICAM_StringNode, POINTER(GenicamDeviceControl))
-
 GenicamDeviceControl._fields_ = [
 	('priv', c_void_p),
 	('addRef', GENICAM_DeviceControl_addRef),
 	('release', GENICAM_DeviceControl_release),
 	('deviceUserID', GENICAM_DeviceControl_deviceUserID),
-	('reserve', c_uint * 28),
+    ('reserve', c_uint * 28),
 ]
 
 

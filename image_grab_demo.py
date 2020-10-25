@@ -5,8 +5,10 @@ sensor_width = 1280
 sensor_height = 1024
 # Ideally, you should select PAL or NTSC supported resolutions
 # others work, but its a bit hit and miss
-img_width = 640
-img_height = 640
+img_width = 1280
+img_height = 1024
+offset_x = 0
+offset_y = 0
 channels = 3
 # this is here to show that you probably should set the framerate of the camera and the framerate
 # of the cv2 window the same.  I had problems here and this appeared to resolve them
@@ -15,14 +17,28 @@ channels = 3
 target_framerate = 23
 framerate_cv2_window = int(1000/target_framerate)
 camera = linux_cams_sdk.Camera(sensor_width, sensor_height, img_width, img_height, channels)
-camera.change_setting(setting="TriggerSource", option='Software')
-camera.change_setting(setting="TriggerSelector", option='FrameStart')
-camera.change_setting(setting='AcquisitionMode', option='Continuous')
+print("setting some properties")
+# the offset needs to be considered with setting the Width and height
+# camera.property_set(setting="DeviceReset", option='Execute', featuretype='Command')
+
+camera.property_set(setting="DeviceUserID", option='mycamera', featuretype='String')
+
+camera.property_set(setting="OffsetX", option=offset_x, featuretype='Integer')
+camera.property_set(setting="OffsetY", option=offset_y, featuretype='Integer')
+
+
+camera.property_set(setting="Width", option=img_width, featuretype='Integer')
+camera.property_set(setting="Height", option=img_height, featuretype='Integer')
+camera.property_set(setting="TriggerSource", option='Software', featuretype='Enumeration')
+camera.property_set(setting="TriggerSelector", option='FrameStart', featuretype='Enumeration')
+camera.property_set(setting='AcquisitionMode', option='Continuous', featuretype='Enumeration')
 # activates the camera - light should start flashing on the back
-camera.change_setting(setting="TriggerMode", option='On')
+camera.property_set(setting="TriggerMode", option='On', featuretype='Enumeration')
 camera.activate()
-camera.change_setting(setting="ExposureAuto", option='Off')
-camera.change_setting(setting="ExposureTime", option=15000)  # will fail if ExposureAuto is not set to Off First
+camera.property_set(setting="ExposureAuto", option='Off', featuretype='Enumeration')
+camera.property_set(setting="ExposureTime", option=15000, featuretype='Float')  # will fail if ExposureAuto is not set to Off First
+
+print("done!")
 
 while True:
     image = camera.grab_image()
