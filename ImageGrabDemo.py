@@ -1,5 +1,5 @@
 import cv2
-import linux_cams_sdk
+import linuxCamsApi
 
 sensor_width = 1280
 sensor_height = 1024
@@ -14,41 +14,40 @@ channels = 3
 # of the cv2 window the same.  I had problems here and this appeared to resolve them
 
 # ToDo:  make changes here so you can set more settings
-target_framerate = 23
+target_framerate = 144
 framerate_cv2_window = int(1000/target_framerate)
-camera = linux_cams_sdk.Camera(sensor_width, sensor_height, img_width, img_height, channels)
+camera = linuxCamsApi.Camera(sensor_width, sensor_height, img_width, img_height, channels)
+pcamera = camera.create_camera_instance()
 print("setting some properties")
 # the offset needs to be considered with setting the Width and height
 # camera.property_set(setting="DeviceReset", option='Execute', featuretype='Command')
-
-camera.property_set(setting="DeviceUserID", option='mycamera', featuretype='String')
-
-camera.property_set(setting="OffsetX", option=offset_x, featuretype='Integer')
-camera.property_set(setting="OffsetY", option=offset_y, featuretype='Integer')
-
-
-camera.property_set(setting="Width", option=img_width, featuretype='Integer')
-camera.property_set(setting="Height", option=img_height, featuretype='Integer')
-camera.property_set(setting="TriggerSource", option='Software', featuretype='Enumeration')
-camera.property_set(setting="TriggerSelector", option='FrameStart', featuretype='Enumeration')
-camera.property_set(setting='AcquisitionMode', option='Continuous', featuretype='Enumeration')
+# its probably better to instantiate the camera pointer once in the linuxCamsApi.....
+camera.set(_camera=pcamera, _property="DeviceUserID", _value='mycamera', _type='String')
+camera.set(_camera=pcamera, _property="OffsetX", _value=offset_x, _type='Integer')
+camera.set(_camera=pcamera, _property="OffsetY", _value=offset_y, _type='Integer')
+camera.set(_camera=pcamera, _property="Width", _value=img_width, _type='Integer')
+camera.set(_camera=pcamera, _property="Height", _value=img_height, _type='Integer')
+camera.set(_camera=pcamera, _property="TriggerSource", _value='Software', _type='Enumeration')
+camera.set(_camera=pcamera, _property="TriggerSelector", _value='FrameStart', _type='Enumeration')
+camera.set(_camera=pcamera, _property='AcquisitionMode', _value='Continuous', _type='Enumeration')
 # activates the camera - light should start flashing on the back
-camera.property_set(setting="TriggerMode", option='On', featuretype='Enumeration')
-camera.activate()
-camera.property_set(setting="ExposureAuto", option='Off', featuretype='Enumeration')
-camera.property_set(setting="ExposureTime", option=15000, featuretype='Float')  # will fail if ExposureAuto is not set to Off First
+camera.set(_camera=pcamera, _property="TriggerMode", _value='On', _type='Enumeration')
+camera.activate(pcamera)
+camera.set(_camera=pcamera, _property="ExposureAuto", _value='Off', _type='Enumeration')
+camera.set(_camera=pcamera, _property="ExposureTime", _value=15000, _type='Float')  # will fail if ExposureAuto is not set to Off First
+camera.set(_camera=pcamera, _property="DeviceReset", _value='Execute', _type='Command')
 
 print("done!")
 
 while True:
-    image = camera.grab_image()
+    image = camera.grab_image(pcamera)
     corrected_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     cv2.imshow('Contrastech Mars USB3 Vision Camera Test', corrected_image)
     k = cv2.waitKey(framerate_cv2_window)
     #print(k)
     if k == 1048603:  # Esc key to stop
         # camera.change_setting(setting=b"TriggerMode", option=b'Off')
-        camera.deactivate()
+        camera.deactivate(pcamera)
         break
 
 # deactivates the camera - light should stop flashing on the back
