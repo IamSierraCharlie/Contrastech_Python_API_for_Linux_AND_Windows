@@ -1,15 +1,15 @@
-# Contrastech_Python_SDK_for_Linux
+# Contrastech_Python_API_for_Linux
 ### What this is
-A very (very) basic working version of a python SDK for Contrastech MARS model USB 3.0 cameras.
+A very (very) basic working version of a python API for Contrastech MARS model USB 3.0 cameras.
 I own a couple of Contrastech MARS cameras http://www.contrastech.com/content/?875.html
-and have had to use 3rd party SDK's to get Windows functionality for these cameras in Python. 
+and have had to use 3rd party API's to get Windows functionality for these cameras in Python. 
 Let me be the first to say that the one I have used has been very good for what I need, but other than Aravis, I have 
 not been able to find anything that works for Linux for Python that allows grabbing of images in an numpy nd.array style image grab.
 Contrastech was good enough to provide an example of some code that grabbed images and saved them as a BMP.  This code I have written is
 very basic, but allows grabbing of an numpy nd.array style image.
 It should be noted that I have fumbled my way to this point to get some working code - I do not profess to be an expert.  My reason for
 adding this repo is in the hope that some that others may be able to benefit from it as well as contribute to a better version of the
-code.  This SDK uses c_types to interface with the dll which is provided by Contrastech.  I have very limited experience with c_types in Python 
+code.  This API uses c_types to interface with the dll which is provided by Contrastech.  I have very limited experience with c_types in Python 
 
 ### Known working cameras - tested and confirmed
 - Mars1300-210uc
@@ -24,7 +24,7 @@ Contrastech provided a very basic demo and I have only used that demo to make wh
 ### Prerequisites
 - An install of Python on a Linux Operating System (I used Anaconda with Python 3.6 on Ubuntu 16.04  )
 - Python Modules -> c_types, opencv2, numpy
-- The Contrastech SDK (aka iCentral) - this includes the driver required to run the camera in Linux and can be found at http://contrastech.com/content/?906.html
+- The Contrastech Software Development Kit for Linux (x86) (aka iCentral) - this includes the driver required to run the camera in Linux and can be found at http://contrastech.com/content/?906.html
 
 ### Known Issues
 - the version of opencv to install should be from the menpo channel - install with 'conda install -c menpo opencv3'
