@@ -25,8 +25,7 @@ print("setting some properties")
 # the offset needs to be considered with setting the Width and height
 # camera.property_set(setting="DeviceReset", option='Execute', featuretype='Command')
 # its probably better to instantiate the camera pointer once in the linuxCamsApi.....
-camera.property_set("DeviceUserID", 'WASSUP')
-input("confirm property set")
+camera.property_set("DeviceUserID", 'Camera')
 camera.property_set("OffsetX", offset_x)
 camera.property_set("OffsetY", offset_y)
 camera.property_set("Width", img_width)
@@ -39,7 +38,7 @@ camera.property_set("TriggerMode", "On")
 camera.activate()
 camera.property_set("ExposureAuto", "Off")
 camera.property_set("ExposureTime", 15000)
-#camera.set(_property="ExposureTime", _value=15000, _type='Float')  # will fail if ExposureAuto is not set to Off First
+camera.property_set("Brightness", 50)
 # camera.set(_property="DeviceReset", _value='Execute', _type='Command')
 
 print("done!")
