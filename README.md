@@ -26,6 +26,12 @@ Contrastech provided a very basic demo and I have only used that demo to make wh
 - Python Modules -> c_types, opencv2, numpy
 - The Contrastech Software Development Kit for Linux (x86) (aka iCentral) - this includes the driver required to run the camera in Linux and can be found at http://contrastech.com/content/?906.html
 
+### Getting this SDK to work
+Review and/or run ImageGrabDemo.py with a Contrastech USB3 Camera such as the Mars 1300-201uc and it should work.  There
+are examples on how to send commands to the camera.  It is recommended you review the Contrastech SDK for commands that 
+work.  Another useful place is the XML file stored on the camera (every camera keeps a file on it that provides its 
+functionality)
+
 ### Known Issues
 - the version of opencv to install should be from the menpo channel - install with 'conda install -c menpo opencv3'
 - the software and driver from ContrasTech is only known to work up to Ubuntu 16.04.  I have checked with the support 
@@ -36,6 +42,11 @@ for it to work properly.  A giveaway for this issue is that the program complain
 The fix is to reinstall iCentral which will compile the module and install again. 
 - my code writing is crap - yes I know.  I cannot commit the time I want to for these things, but I'm working on it.  
 Constructive criticisms is always appreciated...
+
+### Feedback
+If you own this camera or use this API, please provide feedback.  If you want to collaborate on this or your own work, 
+I'm happy to offer a hand.  I admit I am no expert, but am always keen on seeing the development of an SDK for this 
+camera as there is not a huge amount of info out there for this.
 
 ### Future plans
 - my reason for this code was that I took high speed images on a production line for quality checks using Tensorflow.  I
