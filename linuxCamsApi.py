@@ -56,8 +56,8 @@ class Camera(object):
 
     def unsubscribe_camera_status(self):
         # Anti-registration notification
-        event_subscribe = pointer(GenicamEventSubscribe())
-        event_subscribe_info = GenicamEventSubscribeInfo()
+        event_subscribe = pointer(GENICAM_EventSubscribe())
+        event_subscribe_info = GENICAM_EventSubscribeInfo()
         event_subscribe_info.pCamera = pointer(self.campointer)
         n_ret = GENICAM_createEventSubscribe(byref(event_subscribe_info), byref(event_subscribe))
         if n_ret != 0:
@@ -77,8 +77,8 @@ class Camera(object):
 
     def subscribe_camera_status(self):
         # Registration notification
-        event_subscribe = pointer(GenicamEventSubscribe())
-        event_subscribe_info = GenicamEventSubscribeInfo()
+        event_subscribe = pointer(GENICAM_EventSubscribe())
+        event_subscribe_info = GENICAM_EventSubscribeInfo()
         event_subscribe_info.pCamera = pointer(self.campointer)
         n_ret = GENICAM_createEventSubscribe(byref(event_subscribe_info), byref(event_subscribe))
         if n_ret != 0:
@@ -168,19 +168,19 @@ class Camera(object):
 
     def activate(self):
         # connect to the camera
-        acq_ctrl_info = GenicamAcquisitionControlInfo()
+        self.acqCtrl = pointer(GENICAM_AcquisitionControl())
+        acq_ctrl_info = GENICAM_AcquisitionControlInfo()
         acq_ctrl_info.pCamera = pointer(self.campointer)
-        self.acqCtrl = pointer(GenicamAcquisitionControl())
         n_ret = GENICAM_createAcquisitionControl(pointer(acq_ctrl_info), byref(self.acqCtrl))
         if n_ret != 0:
             print("create AcquisitionControl fail!")
             return -1
         # create the streaming source
         print('creating a stream source')
-        stream_source_info = GenicamStreamSourceInfo()
+        self.image_source = pointer(GENICAM_StreamSource())
+        stream_source_info = GENICAM_StreamSourceInfo()
         stream_source_info.channelId = 0
         stream_source_info.pCamera = pointer(self.campointer)
-        self.image_source = pointer(GenicamStreamSource())
         n_ret = GENICAM_createStreamSource(pointer(stream_source_info), byref(self.image_source))
         if n_ret != 0:
             print("create image_source fail!")
@@ -194,7 +194,7 @@ class Camera(object):
 
         # Start grabbing images
         n_ret = self.image_source.contents.startGrabbing(self.image_source, c_ulonglong(0),
-                                                         c_int(GENICAM_EGrabStrategy.grabStrategySequential))
+                                                         c_int(GENICAM_EGrabStrategy.grabStrartegySequential))
         if n_ret != 0:
             print("startGrabbing fail!")
             # Release related resources
@@ -220,7 +220,7 @@ class Camera(object):
         if n_ret != 0:
             print("getSystemInstance fail!")
             return None, None
-        camera_list = pointer(GenicamCamera())
+        camera_list = pointer(GENICAM_Camera())
         camera_cnt = c_uint()
         camera_xml = c_char_p()
         n_ret = system.contents.discovery(system, byref(camera_list), byref(camera_cnt),
@@ -238,8 +238,8 @@ class Camera(object):
             return camera_cnt.value, camera_list
 
     def connect_device_control(self):
-        device_control = pointer(GenicamDeviceControl())
-        device_control_info = GenicamDeviceControlInfo()
+        device_control = pointer(GENICAM_DeviceControl())
+        device_control_info = GENICAM_DeviceControlInfo()
         device_control_info.pCamera = pointer(self.campointer)
         n_ret = GENICAM_createDeviceControl(byref(device_control_info), byref(device_control))
         if n_ret != 0:
@@ -264,8 +264,8 @@ class Camera(object):
         print("GETTING USB INTERFACE INFO!!")
         print("GETTING USB CAMERA INFO!!")
         # usb_camera = pointer(camera)
-        usb_camera = pointer(GenicamUsbCamera())
-        usb_camera_info = GenicamUsbCameraInfo()
+        usb_camera = pointer(GENICAM_UsbCamera())
+        usb_camera_info = GENICAM_UsbCameraInfo()
         usb_camera_info.pCamera = pointer(self.campointer)
         n_ret = GENICAM_createUsbCamera(byref(usb_camera_info), byref(usb_camera))
         if n_ret != 0:
@@ -339,14 +339,14 @@ class Camera(object):
         trig_software_cmd_node = self.acqCtrl.contents.triggerSoftware(self.acqCtrl)
         n_ret = trig_software_cmd_node.execute(byref(trig_software_cmd_node))
         if n_ret != 0:
-            print("Execute triggerSoftware fail!")
+            print(f"Execute triggerSoftware fail => {n_ret} ")
             # 释放相关资源 - Release related resources
             trig_software_cmd_node.release(byref(trig_software_cmd_node))
             self.acqCtrl.contents.release(self.acqCtrl)
             self.image_source.contents.release(self.image_source)
             return -1
         # print('2')
-        frame = pointer(GenicamFrame())
+        frame = pointer(GENICAM_Frame())
         # print(datetime.datetime.now().strftime("%y%m%d%H%M%S"))
         n_ret = self.image_source.contents.getFrame(self.image_source, byref(frame), c_uint(1000))
 
@@ -408,8 +408,8 @@ class Camera(object):
         print('\n\n\nGetting info about setting')
         # setting_to_get = setting.encode()  # convert to bytes
         # set the right pointer
-        temp_node_pointer = pointer(GenicamDoubleNode())
-        temp_node_info = GenicamDoubleNodeInfo()
+        temp_node_pointer = pointer(GENICAM_DoubleNode())
+        temp_node_info = GENICAM_DoubleNodeInfo()
         temp_node_info.pCamera = pointer(self.campointer)
         temp_node_info.attrName = b'DeviceTemperature'
         n_ret = GENICAM_createDoubleNode(byref(temp_node_info), byref(temp_node_pointer))
@@ -459,7 +459,7 @@ class Camera(object):
                                     print(f'            Visibility {subtags.text}')
                                     is_enum = True
                                     t_pointer = pointer(GENICAM_EnumNode())
-                                    t_pointer_info = GenicamEnumNodeInfo()
+                                    t_pointer_info = GENICAM_EnumNodeInfo()
                                     t_pointer_info.pCamera = pointer(self.campointer)
                                     t_pointer_info.attrName = str(target_property).encode()
                                     t_value_adjusted = target_value.encode()
@@ -478,8 +478,8 @@ class Camera(object):
                                     print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
                                     print(f'            Visibility {subtags.text}')
                                     print(f'                Target value is {target_value}')
-                                    t_pointer = pointer(GenicamIntNode())
-                                    t_pointer_info = GenicamIntNodeInfo()
+                                    t_pointer = pointer(GENICAM_IntNode())
+                                    t_pointer_info = GENICAM_IntNodeInfo()
                                     t_pointer_info.pCamera = pointer(self.campointer)
                                     t_pointer_info.attrName = str(target_property).encode()
                                     t_value_adjusted = c_longlong(target_value)
@@ -497,8 +497,8 @@ class Camera(object):
                                     print(f'        subtag attribute {subtag.attrib["Name"]}')
                                     print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
                                     print(f'            Visibility {subtags.text}')
-                                    t_pointer = pointer(GenicamDoubleNode())
-                                    t_pointer_info = GenicamDoubleNodeInfo()
+                                    t_pointer = pointer(GENICAM_DoubleNode())
+                                    t_pointer_info = GENICAM_DoubleNodeInfo()
                                     t_pointer_info.pCamera = pointer(self.campointer)
                                     t_pointer_info.attrName = str(target_property).encode()
                                     t_value_adjusted = c_double(target_value)
@@ -516,7 +516,7 @@ class Camera(object):
                                     print(f'        subtag attribute {subtag.attrib["Name"]}')
                                     print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
                                     print(f'            Visibility {subtags.text}')
-                                    t_pointer = pointer(GenicamBoolNode())
+                                    t_pointer = pointer(GENICAM_BoolNode())
                                     t_pointer_info = GENICAM_BoolNodeInfo()
                                     t_pointer_info.pCamera = pointer(self.campointer)
                                     t_pointer_info.attrName = str(target_property).encode()
@@ -604,7 +604,6 @@ class Camera(object):
             return False
         else:
             return True
-
     # target value must be in the form required by the base function
     def set_value(self, t_pointer, target_value, is_enum):
         if self.isvalid(t_pointer, target_value):
@@ -631,16 +630,12 @@ class Camera(object):
         else:
             print("Not Valid")
             return -4
-
-    @staticmethod  # target value must be in the form required by the base function
-    def setvalueBySymbol(t_pointer, target_value):
-        n_ret = t_pointer.contents.setValueBySymbol(t_pointer, target_value)
-        return n_ret
-
+    # ToDo: need to create value getter in the same fashion as the "set_Value" function
     @staticmethod
     def releasecontents(t_pointer, target_value):
         t_pointer.contents.release(t_pointer)
 
+    # TODO get some settings from the camera - i.e. sensor width and height for correctly setting w / h and offset
     def property_set(self, t_property, t_value):  # type will be grabbed from the xml
         print(f"t_proerty is  {t_property}")
         print(f"t_value is  {t_value}")
@@ -660,188 +655,11 @@ class Camera(object):
 
         # how to get this next command?
 
-    def set(self, _property, _value, _type):  # adding featuretype for better control
-        # here, we will eventually review the xml for _property to determine which feature type it is
-        # for now, we'll set it manually....
-        print('\n\n\nInstance is: {}'.format(type(_value)))
-        _property = _property.encode()  # convert to bytes
-        if _type is "Float":  # A Number
-            print('changing with settings num')
-            self.settings_float_num(_property, _value)
-        elif _type is "Integer":  # A Number
-            print('changing with settings num')
-            self.settings_int_num(_property, _value)
-        elif _type is "Enumeration":  # A string - encode to bytes
-            print('changing with settings_unum_str')
-            self.settings_enum_str(_property, _value.encode())
-        elif _type is "Bool":  # A Boolean
-            print('changing with settings_bool')
-            self.settings_bool(_property, _value)
-        elif _type is "String":
-            print('change with settings string')
-            self.settings_string(_property, _value)
-        elif _type is "Command":
-            print('executing the command')
-            self.settings_execute_command(_property=_property, _value=_value)
-        else:
-            print('unknown var {} from setting {} - unable to handle this'.format(_value, _property))
-            exit()
-
-    # TODO: this works - but the camera must not be in use when calling it to execute a command...
-
-    def settings_execute_command(self, _property, _value):
-        setting_exec_command = pointer(GENICAM_CmdNode())
-        setting_exec_command_info = GENICAM_CmdNodeInfo()
-        setting_exec_command_info.pCamera = pointer(self.campointer)
-        setting_exec_command_info.attrName = _property
-        n_ret = GENICAM_createCmdNode(byref(setting_exec_command_info), byref(setting_exec_command))
-        if n_ret != 0:
-            print("Unable to access {}".format(_property))
-            # Release related resources
-            setting_exec_command.contents.release(setting_exec_command)
-            return -1
-        else:  # if accessible, check command is valid
-            print("Checking {}".format(_property))
-            n_ret = setting_exec_command.contents.isValid(setting_exec_command, _value)
-            print("nret is {}".format(n_ret))
-            if n_ret != 0:
-                print("{} is an invalid command".format(_property))
-                # Release related resources
-                setting_exec_command.contents.release(setting_exec_command)
-                return -1
-            else:  # if available, it is available
-                print("Checking {}".format(_property))
-                n_ret = setting_exec_command.contents.isAvailable(setting_exec_command, _value)
-                print("nret is {}".format(n_ret))
-                if n_ret != 0:
-                    print("{} isAvailable cannot be achieved right now".format(_property))
-                    # Release related resources
-                    setting_exec_command.contents.release(setting_exec_command)
-                    return -1
-                else:  # its writeable so lets do it!
-                    print("Checking {}".format(_property))
-                    n_ret = setting_exec_command.contents.execute(setting_exec_command, _value)
-                    print("nret is {}".format(n_ret))
-                    if n_ret != 0:
-                        print("Execution of command {} failed".format(_property))
-                        # Release related resources
-                        setting_exec_command.contents.release(setting_exec_command)
-
-    def settings_string(self, _property, _value):  # this allows setting a string where the Type is string
-        setting_string_node = pointer(GENICAM_StringNode())
-        setting_string_node_info = GENICAM_StringNodeInfo()
-        setting_string_node_info.pCamera = pointer(self.campointer)
-        setting_string_node_info.attrName = _property
-        n_ret = GENICAM_createStringNode(byref(setting_string_node_info), byref(setting_string_node))
-        if n_ret != 0:
-            print("create {} Node fail!".format(_property))
-            return -1
-        n_ret = setting_string_node.contents.setValue(setting_string_node, c_char_p(
-            _value.encode()))  # this was a bool need to set this
-        if n_ret != 0:
-            print("set {} to {} failed!".format(_property, _value))
-            setting_string_node.contents.release(setting_string_node)
-            return -1
-        else:
-            print("set {} to {} success.".format(_property, _value))
-        setting_string_node.contents.release(setting_string_node)
-        return 0
-
-    def settings_enum_str(self, _property, _value):  # Check the type under the feature name - it needs to be enumerable
-        setting_char_enum_node = pointer(GENICAM_EnumNode())
-        setting_char_enum_node_info = GenicamEnumNodeInfo()
-        setting_char_enum_node_info.pCamera = pointer(self.campointer)
-        setting_char_enum_node_info.attrName = _property
-        n_ret = GENICAM_createEnumNode(byref(setting_char_enum_node_info), byref(setting_char_enum_node))
-        if n_ret != 0:
-            print("Unable to access {}".format(_property))
-            # Release related resources
-
-            self.image_source.contents.release(self.image_source)  # this is wrong
-            return -1
-        # change setting_char_ mode to continuous
-        print('Changing {} to {}'.format(_property, _value))
-        n_ret = setting_char_enum_node.contents.setValueBySymbol(setting_char_enum_node, _value)
-        if n_ret != 0:
-            print('Failed!')
-            # Release related resources
-            setting_char_enum_node.contents.release(setting_char_enum_node)
-            # self.image_source.contents.release(self.image_source)  # this is wrong
-            return -1
-        else:
-            print('Success!')
-        setting_char_enum_node.contents.release(setting_char_enum_node)
-
-    def settings_float_num(self, _property,
-                           _value):  # Check the type under the feature name - it needs to be a number (like a float)
-        setting_num_node = pointer(GenicamDoubleNode())
-        setting_num_node_info = GenicamDoubleNodeInfo()
-        setting_num_node_info.pCamera = pointer(self.campointer)
-        setting_num_node_info.attrName = _property
-        n_ret = GENICAM_createDoubleNode(byref(setting_num_node_info), byref(setting_num_node))
-        if n_ret != 0:
-            print("create {} Node fail!".format(_property))
-            setting_num_node.contents.release(setting_num_node)
-            return -1
-        n_ret = setting_num_node.contents.setValue(setting_num_node, c_double(_value))
-        if n_ret != 0:
-            print("set {} to {} fail!".format(_property, _value))
-            setting_num_node.contents.release(setting_num_node)
-            return -1
-        else:
-            print("set {} to {} success.".format(_property, _value))
-        setting_num_node.contents.release(setting_num_node)
-        return 0
-
-    def settings_int_num(self, _property,
-                         _value):  # Check the type under the feature name - it needs to be a number (like a float)
-        setting_int_node = pointer(GenicamIntNode())
-        setting_int_node_info = GenicamIntNodeInfo()
-        setting_int_node_info.pCamera = pointer(self.campointer)
-        setting_int_node_info.attrName = _property
-        n_ret = GENICAM_createIntNode(byref(setting_int_node_info), byref(setting_int_node))
-        if n_ret != 0:
-            print("create {} Node fail!".format(_property))
-            return -1
-        n_ret = setting_int_node.contents.setValue(setting_int_node, c_longlong(_value))
-        if n_ret != 0:
-            print("set {} to {} fail!".format(_property, _value))
-            setting_int_node.contents.release(setting_int_node)
-            return -1
-        else:
-            print("set {} to {} success.".format(_property, _value))
-        setting_int_node.contents.release(setting_int_node)
-        return 0
-
-    def settings_bool(self, _property,
-                      _value):  # Check the type under the feature name - it needs to be a Bool - true or false
-        setting_bool_node = pointer(GenicamBoolNode())
-        setting_bool_node_info = GENICAM_BoolNodeInfo()
-        setting_bool_node_info.pCamera = pointer(self.campointer)
-        setting_bool_node_info.attrName = _property
-        n_ret = GENICAM_createBoolNode(byref(setting_bool_node_info), byref(setting_bool_node))
-        if n_ret != 0:
-            print("create {} Node fail!".format(_property))
-            return -1
-        n_ret = setting_bool_node.contents.setValue(setting_bool_node, bool(_value))
-        if n_ret != 0:
-            print("set {} to {} failed!".format(_property, _value))
-            setting_bool_node.contents.release(setting_bool_node)
-            return -1
-        else:
-            print("set {} to {} success.".format(_property, _value))
-        setting_bool_node.contents.release(setting_bool_node)
-        return 0
-
-    # TODO get some settings from the camera - i.e. sensor width and height for correctly setting w / h and offset
-
-    # this works, but it not currently in use
     def set_roi(self, offset_x, offset_y, n_width, n_height):  # another example from the Contrastech Demo
-        # 获取原始的宽度
         # set the pointer
-        width_max_node = pointer(GenicamIntNode())
+        width_max_node = pointer(GENICAM_IntNode())
         # set the info associated with it
-        width_max_node_info = GenicamIntNodeInfo()
+        width_max_node_info = GENICAM_IntNodeInfo()
         # set the pointer to the camera
         width_max_node_info.pCamera = pointer(self.campointer)
         # set the attribute name you are chasing
@@ -866,8 +684,8 @@ class Camera(object):
         width_max_node.contents.release(width_max_node)
 
         # 获取原始的高度
-        height_max_node = pointer(GenicamIntNode())
-        height_max_node_info = GenicamIntNodeInfo()
+        height_max_node = pointer(GENICAM_IntNode())
+        height_max_node_info = GENICAM_IntNodeInfo()
         height_max_node_info.pCamera = pointer(self.campointer)
         height_max_node_info.attrName = b"HeightMax"
         n_ret = GENICAM_createIntNode(byref(height_max_node_info), byref(height_max_node))
@@ -892,8 +710,8 @@ class Camera(object):
             return -1
 
         # 设置宽度
-        width_node = pointer(GenicamIntNode())
-        width_node_info = GenicamIntNodeInfo()
+        width_node = pointer(GENICAM_IntNode())
+        width_node_info = GENICAM_IntNodeInfo()
         width_node_info.pCamera = pointer(self.campointer)
         width_node_info.attrName = b"Width"
         n_ret = GENICAM_createIntNode(byref(width_node_info), byref(width_node))
@@ -912,8 +730,8 @@ class Camera(object):
         width_node.contents.release(width_node)
 
         # 设置高度
-        height_node = pointer(GenicamIntNode())
-        height_node_info = GenicamIntNodeInfo()
+        height_node = pointer(GENICAM_IntNode())
+        height_node_info = GENICAM_IntNodeInfo()
         height_node_info.pCamera = pointer(self.campointer)
         height_node_info.attrName = b"Height"
         n_ret = GENICAM_createIntNode(byref(height_node_info), byref(height_node))
@@ -932,8 +750,8 @@ class Camera(object):
         height_node.contents.release(height_node)
 
         # 设置OffsetX
-        offset_x_node = pointer(GenicamIntNode())
-        offset_x_node_info = GenicamIntNodeInfo()
+        offset_x_node = pointer(GENICAM_IntNode())
+        offset_x_node_info = GENICAM_IntNodeInfo()
         offset_x_node_info.pCamera = pointer(self.campointer)
         offset_x_node_info.attrName = b"OffsetX"
         n_ret = GENICAM_createIntNode(byref(offset_x_node_info), byref(offset_x_node))
@@ -952,8 +770,8 @@ class Camera(object):
         offset_x_node.contents.release(offset_x_node)
 
         # 设置OffsetY
-        offset_y_node = pointer(GenicamIntNode())
-        offset_y_node_info = GenicamIntNodeInfo()
+        offset_y_node = pointer(GENICAM_IntNode())
+        offset_y_node_info = GENICAM_IntNodeInfo()
         offset_y_node_info.pCamera = pointer(self.campointer)
         offset_y_node_info.attrName = b"OffsetY"
         n_ret = GENICAM_createIntNode(byref(offset_y_node_info), byref(offset_y_node))
@@ -971,7 +789,6 @@ class Camera(object):
         # 释放相关资源 - Release related resources
         offset_y_node.contents.release(offset_y_node)
         return 0
-
     # the reason for this function is because the offsets for the mars camera seem to need to be a number
     # divisible by 16.  This function takes care of that for the basic dimensions that I use. It may not
     # work for other people...
