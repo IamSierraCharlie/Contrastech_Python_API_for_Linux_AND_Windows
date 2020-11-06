@@ -4,7 +4,7 @@ import numpy as np
 import zipfile
 import os
 import xml.etree.ElementTree as ETree
-
+import re
 g_cameraStatusUserInfo = b"statusInfo"
 
 
@@ -425,8 +425,13 @@ class Camera(object):
         print("The temp node was reported as {}".format(cam_temp.value))
         temp_node_pointer.contents.release(temp_node_pointer)
 
-    def query_genicam_file(self, target_property, target_value, property_xml):
+    def genicam_worker(self, target_property, target_value, property_xml):
         # return the command type, a pointer and a pointers info
+        t_pointer = None
+        t_pointer_info = None
+        t_value_adjusted = None
+        is_enum = False
+        n_ret = -99
         tree = ETree.parse(property_xml)
         # pf is a prefix -> https://www.w3schools.com/xml/xml_namespaces.asp
         pf = '{http://www.genicam.org/GenApi/Version_1_1}'
@@ -445,67 +450,124 @@ class Camera(object):
                         enumsubtags = subtag.iter(f"{pf}Visibility")
                         for subtags in enumsubtags:
                             if subtags.text != "Invisible":
-                                print(f'property heading is {property_heading.text}')
-                                print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
-                                print(f'        subtag attribute {subtag.attrib["Name"]}')
-                                print(f'        subtag attribute type {subtag.tag}')
-                                print(f'            Visibility {subtags.text}')
+                                # print(f'target_property => {target_property} | attribute => {subtag.attrib["Name"]}')
+                                if target_property == subtag.attrib["Name"]:
+                                    print(f'property heading is {property_heading.text}')
+                                    print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
+                                    print(f'        subtag attribute {subtag.attrib["Name"]}')
+                                    print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
+                                    print(f'            Visibility {subtags.text}')
+                                    is_enum = True
+                                    t_pointer = pointer(GENICAM_EnumNode())
+                                    t_pointer_info = GenicamEnumNodeInfo()
+                                    t_pointer_info.pCamera = pointer(self.campointer)
+                                    t_pointer_info.attrName = str(target_property).encode()
+                                    t_value_adjusted = target_value.encode()
+                                    n_ret = GENICAM_createEnumNode(byref(t_pointer_info), byref(t_pointer))
+                                    break
+
                     elif subtag.tag == f'{pf}Integer':
                         intsubtags = subtag.iter(f"{pf}Visibility")
                         for subtags in intsubtags:
                             if subtags.text != "Invisible":
-                                print(f'property heading is {property_heading.text}')
-                                print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
-                                print(f'        subtag attribute {subtag.attrib["Name"]}')
-                                print(f'        subtag attribute type {subtag.tag}')
-                                print(f'            Visibility {subtags.text}')
+                                # print(f'target_property => {target_property} | attribute => {subtag.attrib["Name"]}')
+                                if target_property == subtag.attrib["Name"]:
+                                    print(f'property heading is {property_heading.text}')
+                                    print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
+                                    print(f'        subtag attribute {subtag.attrib["Name"]}')
+                                    print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
+                                    print(f'            Visibility {subtags.text}')
+                                    print(f'                Target value is {target_value}')
+                                    t_pointer = pointer(GenicamIntNode())
+                                    t_pointer_info = GenicamIntNodeInfo()
+                                    t_pointer_info.pCamera = pointer(self.campointer)
+                                    t_pointer_info.attrName = str(target_property).encode()
+                                    t_value_adjusted = c_longlong(target_value)
+                                    n_ret = GENICAM_createIntNode(byref(t_pointer_info), byref(t_pointer))
+                                    break
+
                     elif subtag.tag == f'{pf}Float':
                         floatsubtags = subtag.iter(f"{pf}Visibility")
                         for subtags in floatsubtags:
                             if subtags.text != "Invisible":
-                                print(f'property heading is {property_heading.text}')
-                                print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
-                                print(f'        subtag attribute {subtag.attrib["Name"]}')
-                                print(f'        subtag attribute type {subtag.tag}')
-                                print(f'            Visibility {subtags.text}')
+                                # print(f'target_property => {target_property} | attribute => {subtag.attrib["Name"]}')
+                                if target_property == subtag.attrib["Name"]:
+                                    print(f'property heading is {property_heading.text}')
+                                    print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
+                                    print(f'        subtag attribute {subtag.attrib["Name"]}')
+                                    print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
+                                    print(f'            Visibility {subtags.text}')
+                                    t_pointer = pointer(GenicamDoubleNode())
+                                    t_pointer_info = GenicamDoubleNodeInfo()
+                                    t_pointer_info.pCamera = pointer(self.campointer)
+                                    t_pointer_info.attrName = str(target_property).encode()
+                                    t_value_adjusted = c_double(target_value)
+                                    n_ret = GENICAM_createDoubleNode(byref(t_pointer_info), byref(t_pointer))
+                                    break
+
                     elif subtag.tag == f'{pf}Boolean':
                         boolsubtags = subtag.iter(f"{pf}Visibility")
                         for subtags in boolsubtags:
                             if subtags.text != "Invisible":
-                                print(f'property heading is {property_heading.text}')
-                                print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
-                                print(f'        subtag attribute {subtag.attrib["Name"]}')
-                                print(f'        subtag attribute type {subtag.tag}')
-                                print(f'            Visibility {subtags.text}')
+                                # print(f'target_property => {target_property} | attribute => {subtag.attrib["Name"]}')
+                                if target_property == subtag.attrib["Name"]:
+                                    print(f'property heading is {property_heading.text}')
+                                    print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
+                                    print(f'        subtag attribute {subtag.attrib["Name"]}')
+                                    print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
+                                    print(f'            Visibility {subtags.text}')
+                                    t_pointer = pointer(GenicamBoolNode())
+                                    t_pointer_info = GENICAM_BoolNodeInfo()
+                                    t_pointer_info.pCamera = pointer(self.campointer)
+                                    t_pointer_info.attrName = str(target_property).encode()
+                                    t_value_adjusted = c_bool(target_value)
+                                    n_ret = GENICAM_createBoolNode(byref(t_pointer_info), byref(t_pointer))
+                                    break
+
                     elif subtag.tag == f'{pf}StringReg':
                         stringsubtags = subtag.iter(f"{pf}Visibility")
                         for subtags in stringsubtags:
                             if subtags.text != "Invisible":
-                                print(f'property heading is {property_heading.text}')
-                                print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
-                                print(f'        subtag attribute {subtag.attrib["Name"]}')
-                                print(f'        subtag attribute type {subtag.tag}')
-                                print(f'            Visibility {subtags.text}')
+                                # print(f'target_property => {target_property} | attribute => {subtag.attrib["Name"]}')
+                                if target_property == subtag.attrib["Name"]:
+                                    print(f'property heading is {property_heading.text}')
+                                    print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
+                                    print(f'        subtag attribute {subtag.attrib["Name"]}')
+                                    print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
+                                    print(f'            Visibility {subtags.text}')
+                                    print(f'                Target value is {target_value}')
+                                    t_pointer = pointer(GENICAM_StringNode())
+                                    t_pointer_info = GENICAM_StringNodeInfo()
+                                    t_pointer_info.pCamera = pointer(self.campointer)
+                                    t_pointer_info.attrName = target_property.encode()
+                                    t_value_adjusted = c_char_p(target_value.encode())
+                                    n_ret = GENICAM_createStringNode(byref(t_pointer_info), byref(t_pointer))
+                                    print(f'                Adjusted is  {t_value_adjusted}')
+                                    break
+
                     elif subtag.tag == f'{pf}Command':
                         commandsubtags = subtag.iter(f"{pf}Visibility")
                         for subtags in commandsubtags:
                             if subtags.text != "Invisible":
-                                print(f'property heading is {property_heading.text}')
-                                print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
-                                print(f'        subta attribute type {subtag.tag}')
-                                print(f'        subtag attribute {subtag.attrib["Name"]}')
-                                print(f'            Visibility {subtags.text}')
+                                # print(f'target_property => {target_property} | attribute => {subtag.attrib["Name"]}')
+                                if target_property == subtag.attrib["Name"]:
+                                    print(f'property heading is {property_heading.text}')
+                                    print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
+                                    print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
+                                    print(f'        subtag attribute {subtag.attrib["Name"]}')
+                                    print(f'            Visibility {subtags.text}')
+                                    t_pointer = pointer(GENICAM_CmdNode())
+                                    t_pointer_info = GENICAM_CmdNodeInfo()
+                                    t_pointer_info.pCamera = pointer(self.campointer)
+                                    t_pointer_info.attrName = str(target_property).encode()
+                                    n_ret = GENICAM_createCmdNode(byref(t_pointer_info), byref(t_pointer))
+                                    break
 
+        return n_ret, t_pointer, t_pointer_info, t_value_adjusted, is_enum
 
-    def get_type(self, root, pf, target_property, target_element, property_heading, camera_property):
-        types = root.findall(f"./{pf}Group[@Comment='{property_heading.text}']"
-                             f"/{pf}{target_element}[@Name='{camera_property.text}']"
-                             f"/{pf}Visibility")
-        for t in types:
-            if t.text != "Invisible" and target_property == camera_property.text:
-                print(f'Found {camera_property.text} in {property_heading.text} as visibility {t.text}')
-        return types, target_element
-
+    def remove_namespace(self, tag_with_namespace):
+        tag_minus_namespace = re.sub("{(.*?)}", '', tag_with_namespace)
+        return tag_minus_namespace
 
     def isvalid(self, t_pointer, target_value):
         n_ret = t_pointer.contents.isValid(t_pointer, target_value)
@@ -544,11 +606,14 @@ class Camera(object):
             return True
 
     # target value must be in the form required by the base function
-    def setvalue(self, t_pointer, target_value):
+    def set_value(self, t_pointer, target_value, is_enum):
         if self.isvalid(t_pointer, target_value):
             if self.isavailable(t_pointer, target_value):
                 if self.iswriteable(t_pointer, target_value):
-                    n_ret = t_pointer.contents.setValue(t_pointer, target_value)
+                    if is_enum is False:
+                        n_ret = t_pointer.contents.setValue(t_pointer, target_value)
+                    else:
+                        n_ret = t_pointer.contents.setValueBySymbol(t_pointer, target_value)
                     if n_ret != 0:
                         print(f"Could not set the value -> {target_value}")
                         self.releasecontents(t_pointer, target_value)
@@ -581,8 +646,17 @@ class Camera(object):
         print(f"t_value is  {t_value}")
         print(f"xml is is  {self.xml_property_file}")
 
-        result = self.query_genicam_file(t_property, t_value, self.xml_property_file)
-        print(f'result is {result}')
+        # this sets up the camera function, works out what type of command is required, adds the camera then returns
+        # it all ready to apply or read (in our case apply) the value
+        result, p_pointer, p_pointer_info, p_value, is_enum = self.genicam_worker(t_property, t_value, self.xml_property_file)
+        if result != 0:
+            print(f"setting up the call to the camera has failed => {result}")
+        else:
+            final = self.set_value(p_pointer, p_value, is_enum)
+            print(f'final {final}')
+            # check validity, check availability & check writeable
+
+
 
         # how to get this next command?
 
