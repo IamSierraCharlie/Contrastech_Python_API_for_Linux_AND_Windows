@@ -45,6 +45,10 @@ accept a signal from an external sensor to time the image grabs as opposed to ju
 N seconds.  Timing is everything ona production line!  If you are doing something similar, I'd be keen to hear about it!
 
 - Other cool things - if you could get it to work on a Raspberry Pi, you could use Tensorflow to read speed signs or stop signs...
+- I have a Daheng Mercury camera also.  I have done some testing on it and some of it works.  You can grab camera details,
+but not much else. It leads me to believe that I am not far from building something that might work for multiple cameras.  
+I guess every camera manufacturer has a subtle way of doing the same thing a little differently.  Perhaps there is an 
+opportunity to get functionality on other cameras? 
 - My focus is on a production line though...
 
 ### Working Example
