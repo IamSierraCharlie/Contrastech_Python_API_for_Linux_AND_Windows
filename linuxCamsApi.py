@@ -431,7 +431,7 @@ class Camera(object):
         node_pointer = None
         node_pointer_info = None
         ctypes_value = None
-        is_enum = False
+        node_type = 0  # default - not string and not enum
         n_ret = -99
         tree = ETree.parse(camera_xml_file)
         # pf is a prefix -> https://www.w3schools.com/xml/xml_namespaces.asp
@@ -453,12 +453,13 @@ class Camera(object):
                             if subtags.text != "Invisible":
                                 # # print(f'camera_parameter => {camera_parameter} | attribute => {subtag.attrib["Name"]}')
                                 if camera_parameter == subtag.attrib["Name"]:
-                                    # print(f'property heading is {property_heading.text}')
-                                    # print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
-                                    # print(f'        subtag attribute {subtag.attrib["Name"]}')
-                                    # print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
-                                    # print(f'            Visibility {subtags.text}')
-                                    is_enum = True
+                                    print('WORKER NODE TYPE 2')
+                                    print(f'property heading is {property_heading.text}')
+                                    print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
+                                    print(f'        subtag attribute {subtag.attrib["Name"]}')
+                                    print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
+                                    print(f'            Visibility {subtags.text}')
+                                    node_type = 2
                                     node_pointer = pointer(GENICAM_EnumNode())
                                     node_pointer_info = GENICAM_EnumNodeInfo()
                                     node_pointer_info.pCamera = pointer(self.campointer)
@@ -466,7 +467,7 @@ class Camera(object):
                                     if parameter_value is not None:
                                         ctypes_value = parameter_value.encode()
                                     else:
-                                        ctypes_value = POINTER(c_char * 256)  # this may be incorrect - needs testing
+                                        ctypes_value = c_char_p()  # this may be incorrect - needs testing
                                     n_ret = GENICAM_createEnumNode(byref(node_pointer_info), byref(node_pointer))
                                     break
 
@@ -526,14 +527,15 @@ class Camera(object):
                                     # print(f'        subtag attribute {subtag.attrib["Name"]}')
                                     # print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
                                     # print(f'            Visibility {subtags.text}')
+                                    # node_type = 3
                                     node_pointer = pointer(GENICAM_BoolNode())
                                     node_pointer_info = GENICAM_BoolNodeInfo()
                                     node_pointer_info.pCamera = pointer(self.campointer)
                                     node_pointer_info.attrName = str(camera_parameter).encode()
                                     if parameter_value is not None:
-                                        ctypes_value = c_bool(parameter_value)
+                                        ctypes_value = c_uint(parameter_value)
                                     else:
-                                        ctypes_value = c_bool()  # declare as empty
+                                        ctypes_value = c_uint()  # declare as empty
                                     n_ret = GENICAM_createBoolNode(byref(node_pointer_info), byref(node_pointer))
                                     break
 
@@ -543,18 +545,20 @@ class Camera(object):
                             if subtags.text != "Invisible":
                                 # # print(f'camera_parameter => {camera_parameter} | attribute => {subtag.attrib["Name"]}')
                                 if camera_parameter == subtag.attrib["Name"]:
-                                    # print(f'property heading is {property_heading.text}')
-                                    # print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
-                                    # print(f'        subtag attribute {subtag.attrib["Name"]}')
-                                    # print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
-                                    # print(f'            Visibility {subtags.text}')
-                                    # print(f'                Target value is {parameter_value}')
+                                    print('WORKER NODE TYPE 1')
+                                    print(f'property heading is {property_heading.text}')
+                                    print(f'    camera_property_heading {xmlgroup.attrib["Comment"]}')
+                                    print(f'        subtag attribute {subtag.attrib["Name"]}')
+                                    print(f'        subtag attribute type {self.remove_namespace(subtag.tag)}')
+                                    print(f'            Visibility {subtags.text}')
+                                    print(f'                Target value is {parameter_value}')
+                                    node_type = 1
                                     node_pointer = pointer(GENICAM_StringNode())
                                     node_pointer_info = GENICAM_StringNodeInfo()
                                     node_pointer_info.pCamera = pointer(self.campointer)
                                     node_pointer_info.attrName = camera_parameter.encode()
                                     if parameter_value is not None:
-                                        ctypes_value = c_char_p(parameter_value.encode())
+                                        ctypes_value = c_char_p(parameter_value.encode())  # This works
                                     else:
                                         ctypes_value = c_char_p()  # declare as empty
                                     n_ret = GENICAM_createStringNode(byref(node_pointer_info), byref(node_pointer))
@@ -583,7 +587,7 @@ class Camera(object):
                                     n_ret = GENICAM_createCmdNode(byref(node_pointer_info), byref(node_pointer))
                                     break
 
-        return n_ret, node_pointer, node_pointer_info, ctypes_value, is_enum
+        return n_ret, node_pointer, node_pointer_info, ctypes_value, node_type
 
     @staticmethod
     def remove_namespace(tag_with_namespace):
@@ -591,7 +595,7 @@ class Camera(object):
         return tag_minus_namespace
 
     def isvalid(self, node_pointer, parameter_value):
-        n_ret = node_pointer.contents.isValid(node_pointer, parameter_value)
+        n_ret = node_pointer.contents.isValid(node_pointer)
         if n_ret != 0:
             self.releasecontents(node_pointer, parameter_value)
             print("Not Valid")
@@ -600,7 +604,7 @@ class Camera(object):
             return True
 
     def isavailable(self, node_pointer, parameter_value):
-        n_ret = node_pointer.contents.isAvailable(node_pointer, parameter_value)
+        n_ret = node_pointer.contents.isAvailable(node_pointer)
         if n_ret != 0:
             self.releasecontents(node_pointer, parameter_value)
             print("Not Available")
@@ -618,7 +622,8 @@ class Camera(object):
             return True
 
     def isreadable(self, node_pointer, parameter_value):
-        n_ret = node_pointer.contents.isReadable(node_pointer, parameter_value)
+        n_ret = node_pointer.contents.isReadable(node_pointer)
+        print(f"is readable {n_ret}")
         if n_ret != 0:
             self.releasecontents(node_pointer, parameter_value)
             print("Not Readable")
@@ -626,20 +631,48 @@ class Camera(object):
         else:
             return True
 
-    def get_value(self, node_pointer, parameter_value):  # keeping set and get apart here because it might be too messy
-        # print(f"node_pointer => {node_pointer}|parameter_value => {parameter_value}")
+    def get_value(self, node_pointer, camera_parameter, parameter_value, node_type):  # keeping set and get apart here because it might be too messy
+        print(f"camera parameter {camera_parameter}")
+        print(f"node_pointer => {type(node_pointer)}|parameter_value => {parameter_value.value}")
+        print(f'node type in get value is {node_type}')
         if self.isvalid(node_pointer, parameter_value):
             if self.isavailable(node_pointer, parameter_value):
                 if self.isreadable(node_pointer, parameter_value):
-                    n_ret = node_pointer.contents.getValue(node_pointer, byref(parameter_value)) #byref(original_width)
-                    if n_ret != 0:
-                        print(f"Could not read a value")
-                        self.releasecontents(node_pointer, parameter_value)
-                        return -1
+                    # get the type instead
+                    if node_type == 2:  # enums here
+                        print("NODE TYPE 2")
+                        third = c_uint()  # below, parameter_value is ctypes_value = c_char_p()
+                        n_ret = node_pointer.contents.getValueSymbol(node_pointer, parameter_value, byref(third))  #TODO enum this is not working
+                        if n_ret != 0:
+                            print(f"Could not read a ENUM value {n_ret}")
+                            self.releasecontents(node_pointer, parameter_value)
+                            return -1
+                        else:
+                            self.releasecontents(node_pointer, parameter_value)
+                            return parameter_value.value
+                    elif node_type == 1:  # stringreg here
+                        print("NODE TYPE 1")
+                        aa = c_char_p()
+                        bb = c_uint()
+                        n_ret = node_pointer.contents.getValue(node_pointer, parameter_value, bb) #TODO string this is not working
+                        if n_ret != 0:
+                            print(f"Could not read a string value {n_ret}")
+                            self.releasecontents(node_pointer, parameter_value)
+                            return -1
+                        else:
+                            self.releasecontents(node_pointer, parameter_value)
+                            return parameter_value.value
                     else:
-                        # print(f"Successfully grabbed the value -> {parameter_value.value}")
-                        self.releasecontents(node_pointer, parameter_value)
-                        return parameter_value.value
+                        print("NODE TYPE 0")
+                        n_ret = node_pointer.contents.getValue(node_pointer, byref(parameter_value)) #byref(original_width)
+                        if n_ret != 0:
+                            print(f"Could not read a value")
+                            self.releasecontents(node_pointer, parameter_value)
+                            return -1
+                        else:
+                            # print(f"Successfully grabbed the value -> {parameter_value.value}")
+                            self.releasecontents(node_pointer, parameter_value)
+                            return parameter_value.value
                 else:
                     print("Not Readable")
                     return -2
@@ -650,16 +683,16 @@ class Camera(object):
             print("Not Valid")
             return -4
 
-
-    def set_value(self, node_pointer, parameter_value, is_enum):
-        print(f"node_pointer => {node_pointer}|parameter_value => {parameter_value}")
+    def set_value(self, node_pointer, parameter_value, node_type):
+        # print(f"node_pointer => {node_pointer}|parameter_value => {parameter_value}")
         if self.isvalid(node_pointer, parameter_value):
             if self.isavailable(node_pointer, parameter_value):
                 if self.iswriteable(node_pointer, parameter_value):
-                    if is_enum is False:
-                        n_ret = node_pointer.contents.setValue(node_pointer, parameter_value)
-                    else:
+                    if node_type is 2:  # an enum
                         n_ret = node_pointer.contents.setValueBySymbol(node_pointer, parameter_value)
+                    else:  # strings, ints, floats, bools....
+                        n_ret = node_pointer.contents.setValue(node_pointer, parameter_value)
+
                     if n_ret != 0:
                         print(f"Could not set the value -> {parameter_value}")
                         self.releasecontents(node_pointer, parameter_value)
@@ -677,12 +710,10 @@ class Camera(object):
         else:
             print("Not Valid")
             return -4
-    # ToDo: need to create value getter in the same fashion as the "set_Value" function
     @staticmethod
     def releasecontents(node_pointer, parameter_value):
         node_pointer.contents.release(node_pointer)
 
-    # TODO get some settings from the camera - i.e. sensor width and height for correctly setting w / h and offset
     def property_getset(self, camera_parameter, parameter_value):  # type will be grabbed from the xml
         # print(f"camera parameter is  {camera_parameter}")
         # print(f"parameter_value is  {parameter_value}")
@@ -690,20 +721,19 @@ class Camera(object):
 
         # this sets up the camera function, works out what type of command is required, adds the camera then returns
         # it all ready to apply or read (in our case apply) the value
-        result, node_pointer, node_pointer_info, p_value, is_enum = self.genicam_worker(camera_parameter, parameter_value, self.xml_property_file)
-        if result != 0: # is this hasnt worked, no point moving on from here....
+        result, node_pointer, node_pointer_info, p_value, node_type = self.genicam_worker(camera_parameter, parameter_value, self.xml_property_file)
+        if result != 0:  # is this hasnt worked, no point moving on from here....
             print(f"setting up the call to the camera has failed => {result}")
         else:
             if parameter_value is None:  # we want to read what it is
                 # print(f"Get value of {camera_parameter} -> a work in progress")
-                result = self.get_value(node_pointer, p_value)
+                result = self.get_value(node_pointer, camera_parameter, p_value, node_type)  # this need to be the camera parameter
                 return result
-                # ToDo: Get the property reader working
             elif parameter_value is "Execute":  # specifically for an execute call...
                 print(f"Executing command {camera_parameter} -> a work in progress")
                 # ToDo: Get the command executor working
             else:  # all other - which is set value
-                final = self.set_value(node_pointer, p_value, is_enum)
+                final = self.set_value(node_pointer, p_value, node_type)
                 print(f'final {final}')
 
                 # check validity, check availability & check writeable
