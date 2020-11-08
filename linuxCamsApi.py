@@ -464,10 +464,10 @@ class Camera(object):
                                     node_pointer_info = GENICAM_EnumNodeInfo()
                                     node_pointer_info.pCamera = pointer(self.campointer)
                                     node_pointer_info.attrName = str(camera_parameter).encode()
-                                    if parameter_value is not None:
+                                    if parameter_value is not None:  #set parameter that we have
                                         ctypes_value = parameter_value.encode()
-                                    else:
-                                        ctypes_value = c_char_p()  # this may be incorrect - needs testing
+                                    else:  # get parameter value from the camera
+                                        ctypes_value = c_char_p()  # this is notworking
                                     n_ret = GENICAM_createEnumNode(byref(node_pointer_info), byref(node_pointer))
                                     break
 
@@ -487,9 +487,9 @@ class Camera(object):
                                     node_pointer_info = GENICAM_IntNodeInfo()
                                     node_pointer_info.pCamera = pointer(self.campointer)
                                     node_pointer_info.attrName = str(camera_parameter).encode()
-                                    if parameter_value is not None:
+                                    if parameter_value is not None:  #set parameter that we have
                                         ctypes_value = c_longlong(parameter_value)
-                                    else:
+                                    else:  # get parameter value from the camera
                                         ctypes_value = c_longlong()  # declare as empty
                                     n_ret = GENICAM_createIntNode(byref(node_pointer_info), byref(node_pointer))
                                     break
@@ -509,9 +509,9 @@ class Camera(object):
                                     node_pointer_info = GENICAM_DoubleNodeInfo()
                                     node_pointer_info.pCamera = pointer(self.campointer)
                                     node_pointer_info.attrName = str(camera_parameter).encode()
-                                    if parameter_value is not None:
+                                    if parameter_value is not None:  #set parameter that we have
                                         ctypes_value = c_double(parameter_value)
-                                    else:
+                                    else:  # get parameter value from the camera
                                         ctypes_value = c_double()  # declare as empty
                                     n_ret = GENICAM_createDoubleNode(byref(node_pointer_info), byref(node_pointer))
                                     break
@@ -532,9 +532,9 @@ class Camera(object):
                                     node_pointer_info = GENICAM_BoolNodeInfo()
                                     node_pointer_info.pCamera = pointer(self.campointer)
                                     node_pointer_info.attrName = str(camera_parameter).encode()
-                                    if parameter_value is not None:
+                                    if parameter_value is not None:  #set parameter that we have
                                         ctypes_value = c_uint(parameter_value)
-                                    else:
+                                    else:  # get parameter value from the camera
                                         ctypes_value = c_uint()  # declare as empty
                                     n_ret = GENICAM_createBoolNode(byref(node_pointer_info), byref(node_pointer))
                                     break
@@ -557,12 +557,15 @@ class Camera(object):
                                     node_pointer_info = GENICAM_StringNodeInfo()
                                     node_pointer_info.pCamera = pointer(self.campointer)
                                     node_pointer_info.attrName = camera_parameter.encode()
-                                    if parameter_value is not None:
+                                    if parameter_value is not None:  # set parameter that we have
                                         ctypes_value = c_char_p(parameter_value.encode())  # This works
-                                    else:
+                                    else:  # get parameter value from the camera
                                         ctypes_value = c_char_p()  # declare as empty
+                                        # Line 839 in MVSDK.py - the future call of getValue requires a POINTER to a
+                                        # c_uint - need to understand how this works as the get function is not working
+                                        # here
+
                                     n_ret = GENICAM_createStringNode(byref(node_pointer_info), byref(node_pointer))
-                                    # print(f'                Adjusted is  {ctypes_value}')
                                     break
 
                     elif subtag.tag == f'{pf}Command':
@@ -584,9 +587,14 @@ class Camera(object):
                                         ctypes_value = c_char_p(parameter_value.encode())  # this would be "Execute"
                                     else:
                                         ctypes_value = c_char_p()  # declare as empty
+                                        # I dont see why this would even be required because there is only execution
+                                        # reality is we should be telling the user, there is nothing to read here
+                                        # but after investigation, our function is doing its job - we get "NotAvailable"
+                                        # when called during grabbing and not readable when called before camera
+                                        # image grabbing. In conclusion, I dont think we will ever get to this point and
+                                        # wonder if its even worth having...
                                     n_ret = GENICAM_createCmdNode(byref(node_pointer_info), byref(node_pointer))
                                     break
-
         return n_ret, node_pointer, node_pointer_info, ctypes_value, node_type
 
     @staticmethod
@@ -642,9 +650,11 @@ class Camera(object):
                     if node_type == 2:  # enums here
                         print("NODE TYPE 2")
                         third = c_uint()  # below, parameter_value is ctypes_value = c_char_p()
-                        n_ret = node_pointer.contents.getValueSymbol(node_pointer, parameter_value, byref(third))  #TODO enum this is not working
+                        n_ret = node_pointer.contents.getValueSymbol(node_pointer, byref(parameter_value), byref(third))  #TODO enum this is not working
                         if n_ret != 0:
                             print(f"Could not read a ENUM value {n_ret}")
+                            print(f"You are seeing this result because I havent managed to get this to work yet")
+                            print("This are (EnumNode) needs work")
                             self.releasecontents(node_pointer, parameter_value)
                             return -1
                         else:
@@ -652,11 +662,14 @@ class Camera(object):
                             return parameter_value.value
                     elif node_type == 1:  # stringreg here
                         print("NODE TYPE 1")
-                        aa = c_char_p()
-                        bb = c_uint()
-                        n_ret = node_pointer.contents.getValue(node_pointer, parameter_value, bb) #TODO string this is not working
+                        mycuint = c_uint(255)
+                        print("GOT THIS")
+                        n_ret = node_pointer.contents.getValue(node_pointer,  parameter_value, byref(mycuint))  #TODO string this is not working
+                        print(f"parameter value is {parameter_value.value}")
                         if n_ret != 0:
                             print(f"Could not read a string value {n_ret}")
+                            print(f"You are seeing this result because I havent managed to get this to work yet")
+                            print("This are (StringReg) needs work")
                             self.releasecontents(node_pointer, parameter_value)
                             return -1
                         else:
@@ -664,7 +677,7 @@ class Camera(object):
                             return parameter_value.value
                     else:
                         print("NODE TYPE 0")
-                        n_ret = node_pointer.contents.getValue(node_pointer, byref(parameter_value)) #byref(original_width)
+                        n_ret = node_pointer.contents.getValue(node_pointer, byref(parameter_value))
                         if n_ret != 0:
                             print(f"Could not read a value")
                             self.releasecontents(node_pointer, parameter_value)
