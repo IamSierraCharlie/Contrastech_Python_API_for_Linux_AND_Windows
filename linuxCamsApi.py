@@ -5,6 +5,7 @@ import zipfile
 import os
 import xml.etree.ElementTree as ETree
 import re
+import sys
 g_cameraStatusUserInfo = b"statusInfo"
 
 
@@ -310,30 +311,36 @@ class Camera(object):
             xmlfile = f"{fname}.xml"
             charzip = c_char_p(zippedfilename.encode())
             camera.connect(camera, c_int(GENICAM_ECameraAccessPermission.accessPermissionControl))
-            camera.downLoadGenICamXML(camera, charzip)
-            with zipfile.ZipFile(zippedfilename, 'r') as zip_ref:
-                filecount = zip_ref.namelist()
-                print(f"fc is {filecount[0]}")
-                zip_ref.extract(filecount[0])
-                os.rename(filecount[0], xmlfile)
-                self.xml_property_file = xmlfile
-            os.remove(zippedfilename)
-            print("self.xml_property_file " + self.xml_property_file)
+            # TODO: check to see if this is successful - if its not, then we cannot access the camera
+            n_ret = camera.downLoadGenICamXML(camera, charzip)
+            if n_ret != 0:
+                print("Unable to connect to the camera - is it in use by another program?")
+                print("PROGRAM WILL EXIT")
+                sys.exit(-1)
+            else:
+                with zipfile.ZipFile(zippedfilename, 'r') as zip_ref:
+                    filecount = zip_ref.namelist()
+                    print(f"fc is {filecount[0]}")
+                    zip_ref.extract(filecount[0])
+                    os.rename(filecount[0], xmlfile)
+                    self.xml_property_file = xmlfile
+                os.remove(zippedfilename)
+                print("self.xml_property_file " + self.xml_property_file)
 
-            print("GENICAM is " + charzip.value.decode('utf-8'))
-            # camera.disConnect(camera)
-        self.campointer = camera_list[0]  # this is the actual camera
-        # self.connect_device_control(self.campointer)
-        # self.property_get("ChunkEnable")
-        self.get_usb_info()
-        # open the camera
-        # query this camera?
-        n_ret = self.open_camera()  # opens the camera
-        if n_ret != 0:  # handles the camera open failure
-            print("openCamera fail.")
-        else:
-            print("Camera Opened")
-            return camera_list[0]
+                print("GENICAM is " + charzip.value.decode('utf-8'))
+                # camera.disConnect(camera)
+                self.campointer = camera_list[0]  # this is the actual camera
+                # self.connect_device_control(self.campointer)
+                # self.property_get("ChunkEnable")
+                self.get_usb_info()
+                # open the camera
+                # query this camera?
+                n_ret = self.open_camera()  # opens the camera
+                if n_ret != 0:  # handles the camera open failure
+                    print("openCamera fail.")
+                else:
+                    print("Camera Opened")
+                return camera_list[0]
 
     def grab_image(self):
         trig_software_cmd_node = self.acqCtrl.contents.triggerSoftware(self.acqCtrl)
@@ -467,7 +474,7 @@ class Camera(object):
                                     if parameter_value is not None:  #set parameter that we have
                                         ctypes_value = parameter_value.encode()
                                     else:  # get parameter value from the camera
-                                        ctypes_value = c_char_p()  # this is notworking
+                                        ctypes_value = create_string_buffer(MAX_STRING_LENTH)
                                     n_ret = GENICAM_createEnumNode(byref(node_pointer_info), byref(node_pointer))
                                     break
 
@@ -652,8 +659,8 @@ class Camera(object):
                     # get the type instead
                     if node_type == 2:  # enums here
                         print("NODE TYPE 2")
-                        third = c_uint()  # below, parameter_value is ctypes_value = c_char_p()
-                        n_ret = node_pointer.contents.getValueSymbol(node_pointer, byref(parameter_value), byref(third))  #TODO enum this is not working
+                        cuint_value = c_uint(MAX_STRING_LENTH)  # below, parameter_value is ctypes_value = c_char_p()
+                        n_ret = node_pointer.contents.getValueSymbol(node_pointer, parameter_value, byref(cuint_value))  #TODO enum this is not working
                         if n_ret != 0:
                             print(f"Could not read a ENUM value {n_ret}")
                             print(f"You are seeing this result because I havent managed to get this to work yet")
@@ -665,9 +672,8 @@ class Camera(object):
                             return parameter_value.value
                     elif node_type == 1:  # stringreg here
                         print("NODE TYPE 1")
-                        cuint_value = c_uint(256000)
-                        n_ret = node_pointer.contents.getValue(node_pointer,  parameter_value,
-                                                               byref(cuint_value))  #TODO string this is not working
+                        max_string_length = c_uint(MAX_STRING_LENTH)  # This is likely never going to be that big
+                        n_ret = node_pointer.contents.getValue(node_pointer,  parameter_value, byref(max_string_length))
                         print(f"## parameter value is {parameter_value.value}")
                         if n_ret != 0:
                             print(f"Could not read a string value {n_ret}")
