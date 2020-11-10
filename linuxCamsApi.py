@@ -30,7 +30,6 @@ class Camera(object):
         self.connectCallBackFuncEx = connectCallBackEx(self.device_link_notify)
         self.frameCallbackFunc = callbackFunc(self.on_get_frame)
         self.create_camera_instance()  # instantiated upon calling the camera Class
-        # self.get_xml()
         # offset_x, offset_y = self.check_image_dimension_validity(sensor_width, sensor_height, img_width, img_height)
 
     # self.set_roi(self.cam, offset_x, offset_y, img_width, img_height)
@@ -49,7 +48,6 @@ class Camera(object):
             # Release driver image cache resources
             frame.contents.release(frame)
             return
-
         # print("BlockId = %d" % (frame.contents.getBlockId(frame)))
         frame.contents.release(frame)
 
@@ -326,7 +324,6 @@ class Camera(object):
                     self.xml_property_file = xmlfile
                 os.remove(zippedfilename)
                 print("self.xml_property_file " + self.xml_property_file)
-
                 print("GENICAM is " + charzip.value.decode('utf-8'))
                 # camera.disConnect(camera)
                 self.campointer = camera_list[0]  # this is the actual camera
@@ -410,27 +407,6 @@ class Camera(object):
                                                              self.img_channels * self.img_height * self.img_width)),
                                          dtype=np.uint8), (self.img_height, self.img_width, self.img_channels))
         return final
-
-    def property_get_temp(self):  # this is going to be for type string....setting must be of type string
-        print('\n\n\nGetting info about setting')
-        # setting_to_get = setting.encode()  # convert to bytes
-        # set the right pointer
-        temp_node_pointer = pointer(GENICAM_DoubleNode())
-        temp_node_info = GENICAM_DoubleNodeInfo()
-        temp_node_info.pCamera = pointer(self.campointer)
-        temp_node_info.attrName = b'DeviceTemperature'
-        n_ret = GENICAM_createDoubleNode(byref(temp_node_info), byref(temp_node_pointer))
-        if n_ret != 0:
-            print("Unable to access {}".format(temp_node_info.attrName))
-            return -1
-        cam_temp = c_double()
-        n_ret = temp_node_pointer.contents.getValue(temp_node_pointer, byref(cam_temp))
-        if n_ret != 0:
-            print("Unable to get the temp value ")
-            temp_node_pointer.contents.release(temp_node_pointer)
-            return -1
-        print("The temp node was reported as {}".format(cam_temp.value))
-        temp_node_pointer.contents.release(temp_node_pointer)
 
     def genicam_worker(self, camera_parameter, parameter_value, camera_xml_file):
         # return the command type, a pointer and a pointers info
@@ -737,6 +713,7 @@ class Camera(object):
         else:
             print("Not Valid")
             return -4
+
     @staticmethod
     def releasecontents(node_pointer):
         node_pointer.contents.release(node_pointer)
@@ -765,6 +742,7 @@ class Camera(object):
 
                 # check validity, check availability & check writeable
 
+    # this is still useful because it considers offset and image dimenstions - keep for now
     def set_roi(self, offset_x, offset_y, n_width, n_height):  # another example from the Contrastech Demo
         # set the pointer
         width_max_node = pointer(GENICAM_IntNode())
