@@ -556,16 +556,19 @@ class Camera(object):
                                     node_pointer = pointer(GENICAM_StringNode())
                                     node_pointer_info = GENICAM_StringNodeInfo()
                                     node_pointer_info.pCamera = pointer(self.campointer)
-                                    node_pointer_info.attrName = camera_parameter.encode()
+                                    node_pointer_info.attrName = str(camera_parameter).encode()
                                     if parameter_value is not None:  # set parameter that we have
                                         ctypes_value = c_char_p(parameter_value.encode())  # This works
+                                        n_ret = GENICAM_createStringNode(byref(node_pointer_info), byref(node_pointer))
                                     else:  # get parameter value from the camera
-                                        ctypes_value = c_char_p()  # declare as empty
+                                        ctypes_value = create_string_buffer(MAX_STRING_LENTH)  # MAX_STRING_LENTH is 256
                                         # Line 839 in MVSDK.py - the future call of getValue requires a POINTER to a
                                         # c_uint - need to understand how this works as the get function is not working
                                         # here
+                                        print('x')
+                                        n_ret = GENICAM_createStringNode(byref(node_pointer_info), byref(node_pointer))
+                                        print('y')
 
-                                    n_ret = GENICAM_createStringNode(byref(node_pointer_info), byref(node_pointer))
                                     break
 
                     elif subtag.tag == f'{pf}Command':
@@ -605,7 +608,7 @@ class Camera(object):
     def isvalid(self, node_pointer, parameter_value):
         n_ret = node_pointer.contents.isValid(node_pointer)
         if n_ret != 0:
-            self.releasecontents(node_pointer, parameter_value)
+            self.releasecontents(node_pointer)
             print("Not Valid")
             return False
         else:
@@ -614,7 +617,7 @@ class Camera(object):
     def isavailable(self, node_pointer, parameter_value):
         n_ret = node_pointer.contents.isAvailable(node_pointer)
         if n_ret != 0:
-            self.releasecontents(node_pointer, parameter_value)
+            self.releasecontents(node_pointer)
             print("Not Available")
             return False
         else:
@@ -623,7 +626,7 @@ class Camera(object):
     def iswriteable(self, node_pointer, parameter_value):
         n_ret = node_pointer.contents.isWriteable(node_pointer, parameter_value)
         if n_ret != 0:
-            self.releasecontents(node_pointer, parameter_value)
+            self.releasecontents(node_pointer)
             print("Not Writeable")
             return False
         else:
@@ -633,7 +636,7 @@ class Camera(object):
         n_ret = node_pointer.contents.isReadable(node_pointer)
         print(f"is readable {n_ret}")
         if n_ret != 0:
-            self.releasecontents(node_pointer, parameter_value)
+            self.releasecontents(node_pointer)
             print("Not Readable")
             return False
         else:
@@ -641,7 +644,7 @@ class Camera(object):
 
     def get_value(self, node_pointer, camera_parameter, parameter_value, node_type):  # keeping set and get apart here because it might be too messy
         print(f"camera parameter {camera_parameter}")
-        print(f"node_pointer => {type(node_pointer)}|parameter_value => {parameter_value.value}")
+        # print(f"node_pointer => {type(node_pointer)}|parameter_value => {parameter_value.value}")
         print(f'node type in get value is {node_type}')
         if self.isvalid(node_pointer, parameter_value):
             if self.isavailable(node_pointer, parameter_value):
@@ -655,36 +658,37 @@ class Camera(object):
                             print(f"Could not read a ENUM value {n_ret}")
                             print(f"You are seeing this result because I havent managed to get this to work yet")
                             print("This are (EnumNode) needs work")
-                            self.releasecontents(node_pointer, parameter_value)
+                            self.releasecontents(node_pointer)
                             return -1
                         else:
-                            self.releasecontents(node_pointer, parameter_value)
+                            self.releasecontents(node_pointer)
                             return parameter_value.value
                     elif node_type == 1:  # stringreg here
                         print("NODE TYPE 1")
-                        mycuint = c_uint(255)
-                        print("GOT THIS")
-                        n_ret = node_pointer.contents.getValue(node_pointer,  parameter_value, byref(mycuint))  #TODO string this is not working
-                        print(f"parameter value is {parameter_value.value}")
+                        cuint_value = c_uint(256000)
+                        n_ret = node_pointer.contents.getValue(node_pointer,  parameter_value,
+                                                               byref(cuint_value))  #TODO string this is not working
+                        print(f"## parameter value is {parameter_value.value}")
                         if n_ret != 0:
                             print(f"Could not read a string value {n_ret}")
                             print(f"You are seeing this result because I havent managed to get this to work yet")
                             print("This are (StringReg) needs work")
-                            self.releasecontents(node_pointer, parameter_value)
+                            self.releasecontents(node_pointer)
                             return -1
                         else:
-                            self.releasecontents(node_pointer, parameter_value)
+                            self.releasecontents(node_pointer)
+                            print(f'This PARAMETER VALUE IS {parameter_value.value}')
                             return parameter_value.value
                     else:
                         print("NODE TYPE 0")
                         n_ret = node_pointer.contents.getValue(node_pointer, byref(parameter_value))
                         if n_ret != 0:
                             print(f"Could not read a value")
-                            self.releasecontents(node_pointer, parameter_value)
+                            self.releasecontents(node_pointer)
                             return -1
                         else:
                             # print(f"Successfully grabbed the value -> {parameter_value.value}")
-                            self.releasecontents(node_pointer, parameter_value)
+                            self.releasecontents(node_pointer)
                             return parameter_value.value
                 else:
                     print("Not Readable")
@@ -695,6 +699,10 @@ class Camera(object):
         else:
             print("Not Valid")
             return -4
+
+    @staticmethod
+    def get_length_of_null_terminated_string_better(in_pointer):
+        return len(cast(in_pointer, c_char_p).value)
 
     def set_value(self, node_pointer, parameter_value, node_type):
         # print(f"node_pointer => {node_pointer}|parameter_value => {parameter_value}")
@@ -708,11 +716,11 @@ class Camera(object):
 
                     if n_ret != 0:
                         print(f"Could not set the value -> {parameter_value}")
-                        self.releasecontents(node_pointer, parameter_value)
+                        self.releasecontents(node_pointer)
                         return -1
                     else:
                         print(f"Successfully set the value -> {parameter_value}")
-                        self.releasecontents(node_pointer, parameter_value)
+                        self.releasecontents(node_pointer)
                         return 0
                 else:
                     print("Not Writeable")
@@ -724,7 +732,7 @@ class Camera(object):
             print("Not Valid")
             return -4
     @staticmethod
-    def releasecontents(node_pointer, parameter_value):
+    def releasecontents(node_pointer):
         node_pointer.contents.release(node_pointer)
 
     def property_getset(self, camera_parameter, parameter_value):  # type will be grabbed from the xml
