@@ -11,9 +11,16 @@ It should be noted that I have fumbled my way to this point to get some working 
 adding this repo is in the hope that some that others may be able to benefit from it as well as contribute to a better version of the
 code.  This API uses c_types to interface with the dll which is provided by Contrastech.  I have very limited experience with c_types in Python 
 
+### Why use it??
+The main reason is "ease of use" <br>
+
+If you have little understanding of c_types AND want to use your Contrastech camera in Linux, then this API makes it easier to set 
+up your USB3 Industrial camera.  Getting and setting parameter values is very easy also.  
+
 ### Known working cameras - tested and confirmed
 - Mars1300-210uc
 Other Mars cameras from Contrastech should work also.
+With some minor adjustments, you could probably use this for a GIG-E camera also.
 
 If you own one of these cameras and work in Linux and can use this code, then please do so.  Also, please contribute anything you feel to be of benefit.
 ### Example use
