@@ -1,15 +1,16 @@
 # Contrastech_Python_API_for_Linux
 ### What this is
-A very (very) basic working version of a python API for Contrastech MARS model USB 3.0 cameras.
+A working version of a python API for Contrastech MARS model USB3 Industrial cameras.
 I own a couple of Contrastech MARS cameras http://www.contrastech.com/content/?875.html
 and have had to use 3rd party API's to get Windows functionality for these cameras in Python. 
 Let me be the first to say that the one I have used has been very good for what I need, but other than Aravis, I have 
-not been able to find anything that works for Linux for Python that allows grabbing of images in an numpy nd.array style image grab.
-Contrastech was good enough to provide an example of some code that grabbed images and saved them as a BMP.  This code I have written is
-very basic, but allows grabbing of an numpy nd.array style image.
-It should be noted that I have fumbled my way to this point to get some working code - I do not profess to be an expert.  My reason for
-adding this repo is in the hope that some that others may be able to benefit from it as well as contribute to a better version of the
-code.  This API uses c_types to interface with the dll which is provided by Contrastech.  I have very limited experience with c_types in Python 
+not been able to find anything that works for Linux for Python that allows grabbing of images in an numpy nd.array style 
+image grab; at least not for this camera under Linux.  Contrastech was good enough to provide an example of some code 
+that grabbed images and saved them as a BMP.  This code I have written is pretty basic, but allows grabbing of an numpy 
+nd.array style image.  It should be noted that I have fumbled my way to this point to get some working code - I do not 
+profess to be an expert.  My reason for adding this repo is in the hope that some that others may be able to benefit 
+from it as well as contribute to a better version of the code.  This API uses c_types to interface with the dll which 
+is provided by Contrastech.  I have very limited experience with c_types in Python 
 
 ### Why use it??
 The main reason is "ease of use" <br>
@@ -17,7 +18,8 @@ The main reason is "ease of use" <br>
 If you have little understanding of c_types AND want to use your Contrastech camera in Linux, then this API makes it easier to set 
 up your USB3 Industrial camera.  Getting and setting parameter values is very easy also.  
 
-### Known working cameras - tested and confirmed
+### Known working cameras 
+Tested and confirmed on the following Industrial USB3 Camera
 - Mars1300-210uc
 Other Mars cameras from Contrastech should work also.
 With some minor adjustments, you could probably use this for a GIG-E camera also.
