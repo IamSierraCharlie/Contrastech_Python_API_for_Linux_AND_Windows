@@ -1,6 +1,6 @@
 import cv2
 import linuxCamsApi
-import time
+import numpy as np
 sensor_width = 1280  # this is the actual sensor width not the image_width
 sensor_height = 1024 # this is the actual sensor height not the image_height
 # Ideally, you should select PAL or NTSC supported resolutions
@@ -12,9 +12,9 @@ offset_y = 0
 channels = 3
 # this is here to show that you probably should set the framerate of the camera and the framerate
 # of the cv2 window the same.  I had problems here and this appeared to resolve them
-target_framerate = 5
+target_framerate = 50
 framerate_cv2_window = int(1000/target_framerate)
-camera = linuxCamsApi.Camera(sensor_width, sensor_height, img_width, img_height, channels)
+camera = linuxCamsApi.Camera(img_width, img_height, channels, debug=False)
 # when you create an instance of the camera, it should do the following:
 # gets camera instance
 # gets the genicam schema file - you cannot get the file without connectin to the camera first
@@ -25,6 +25,7 @@ print("setting some properties")
 # the offset needs to be considered with setting the Width and height
 # camera.property_set(setting="DeviceReset", option='Execute', featuretype='Command')
 # its probably better to instantiate the camera pointer once in the linuxCamsApi.....
+camera.property_getset("AcquisitionFrameRate", target_framerate)
 camera.property_getset("DeviceTemperatureSelector", "Sensor")
 camera.property_getset("OffsetX", offset_x)
 camera.property_getset("OffsetY", offset_y)
@@ -40,18 +41,25 @@ camera.property_getset("ExposureAuto", "Off")
 camera.property_getset("ExposureTime", 15000)
 camera.property_getset("Brightness", 50)
 print("done!")
+brand_name = camera.property_getset("DeviceVendorName", None)
+model_name = camera.property_getset("DeviceModelName", None)
+temp = camera.property_getset("DeviceTemperature", None)
+color = list(np.random.random(size=3) * 256)
+camera_name = camera.property_getset("DeviceUserID", None)
+counter = 0
 
 while True:
+    if counter > target_framerate * 5:
+        temp = camera.property_getset("DeviceTemperature", None)  # dont grab temp every frame
+        color = list(np.random.random(size=3) * 256)
+        counter = 0
     image = camera.grab_image()
-    corrected_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    cv2.imshow('Contrastech Mars USB3 Vision Camera Test', corrected_image)
+    cv2.putText(image, f'{target_framerate}fps', (img_width - 125, 30), cv2.FONT_HERSHEY_DUPLEX, 1, color)
+    cv2.putText(image, f'Temp {temp}c', (30, 30), cv2.FONT_HERSHEY_DUPLEX, 1, color)
+    cv2.imshow(f'{brand_name} {model_name} USB3 Vision Camera => {camera_name}', image)
     k = cv2.waitKey(framerate_cv2_window)
-    pty = "TriggerSelector"
-    pty_value = "TestBench"
-    res = camera.property_getset(pty, None)
-    print(f"{pty} is {res}")
+    counter += 1
     if k == 1048603:  # Esc key to stop
-        # camera.change_setting(setting=b"TriggerMode", option=b'Off')
         break
 
 camera.deactivate()
