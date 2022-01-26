@@ -679,7 +679,7 @@ class Camera(object):
 		if self.isvalid(node_pointer, parameter_value):
 			if self.isavailable(node_pointer, parameter_value):
 				if self.iswriteable(node_pointer, parameter_value):
-					if node_type is 2:  # an enum
+					if node_type == 2:  # an enum
 						n_ret = node_pointer.contents.setValueBySymbol(node_pointer, parameter_value)
 					else:  # strings, ints, floats, bools....
 						n_ret = node_pointer.contents.setValue(node_pointer, parameter_value)
@@ -720,7 +720,7 @@ class Camera(object):
 				#self.dprint(f"Get value of {camera_parameter} -> a work in progress")
 				result = self.get_value(node_pointer, camera_parameter, p_value, node_type)  # this need to be the camera parameter
 				return result
-			elif parameter_value is "Execute":  # specifically for an execute call...
+			elif parameter_value == "Execute":  # specifically for an execute call...
 				self.dprint(f"Executing command {camera_parameter} -> a work in progress")
 				# ToDo: Get the command executor working
 			else:  # all other - which is set value
