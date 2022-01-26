@@ -15,7 +15,7 @@ def enum(**enums):
 # 32bit
 #MVSDKdll = cdll.LoadLibrary("./dll/x86/libMVSDK.so")
 # 64bit
-MVSDKdll = cdll.LoadLibrary("./dll/x64/libMVSDK.so")
+MVSDKdll = cdll.LoadLibrary("/opt/iCentral/iCentral/lib/libMVSDK.so")
 #SDK.h => define 宏定义libPluginObject.so
 MAX_PARAM_CNT        = 1000
 MAX_STRING_LENTH     = 256
