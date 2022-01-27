@@ -32,7 +32,8 @@ Essentially, I have historically created an instance of the camera, activated th
 Contrastech provided a very basic demo and I have only used that demo to make what is provided. 
 
 ### Prerequisites
-- An install of Python on a Linux Operating System (I used Anaconda with Python 3.6 on Ubuntu 16.04  )
+- An install of Python on a Linux Operating System (I used Anaconda with Python 3.6 on Ubuntu 16.04  ) As of 2022, I am 
+using Ubuntu 20.04 and whilst not officially supported by Contrastech, it works without issue.
 - Python Modules -> c_types, opencv2, numpy
 - The Contrastech Software Development Kit for Linux (x86) (aka iCentral) - this includes the driver required to run the camera in Linux and can be found at http://contrastech.com/content/?906.html
 
@@ -43,14 +44,14 @@ work; as well as the iCentral program supplied by Contrastech.  Another useful p
 functionality).  Review the ImageGrabDemo.py file and the XML file in conjunction.  You can set properties or get property 
 values by first creating a camera instance and then calling the 'property_getset' command.  Where the second argument 
 is populated, the function will attempt to set a value for the property in question.  If it is blank, then it will get 
-the stored value.
+the stored value.  This API MAY work in Windows with some tweaking, but I've not tested it.  A good place to start is to 
+change this line of code -> MVSDKdll = cdll.LoadLibrary("/opt/iCentral/iCentral/lib/libMVSDK.so")  in MVSDK.py to look for
+a Windows dll instead...
 
 ### Known Issues
-- the version of opencv to install should be from the menpo channel - install with 'conda install -c menpo opencv3'
-- the software and driver from ContrasTech is only known to work up to Ubuntu 16.04.  I have checked with the support 
-team (October 2020) and they confirm this.  The main issue is that the driver won't build on kernel versions beyond 
-what is offered in newer versions of Ubuntu.
-- Program is likely to stop working when the Kernel is updated.  You need to reinstall the driver to the current kernel 
+- the software and driver from ContrasTech is confirmed to work up to Ubuntu 20.04.  On October 2020, I checked with 
+Contrastech support and they only supported up to 16.04, but I currently run on 20.04 and haven't noticed any issues. 
+- Program may stop working when the Kernel is updated.  You need to reinstall the driver to the current kernel 
 for it to work properly.  A giveaway for this issue is that the program complains that it is unable to load the driver.  
 The fix is to reinstall iCentral which will compile the module and install again. 
 - my code writing is crap - yes I know.  I cannot commit the time I want to for these things, but I'm working on it.  
@@ -66,7 +67,7 @@ camera as there is not a huge amount of info out there for this.
 ran this in Windows for the most part due to this driver issue.  I did have success in getting my program to 
 work in Linux although I never put it into production.  I plan to make some changes to this code so that the camera will 
 accept a signal from an external sensor to time the image grabs as opposed to just grabbing an image every
-N seconds.  Timing is everything ona production line!  If you are doing something similar, I'd be keen to hear about it!
+N seconds.  Timing is everything on a production line!  If you are doing something similar, I'd be keen to hear about it!
 
 - Other cool things - if you could get it to work on a Raspberry Pi, you could use Tensorflow to read speed signs or stop signs...
 - I have a Daheng Mercury camera also.  I have done some testing on it and some of it works.  You can grab camera details,

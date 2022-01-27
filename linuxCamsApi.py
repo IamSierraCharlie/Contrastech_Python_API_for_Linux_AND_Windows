@@ -10,6 +10,7 @@ import cv2
 g_cameraStatusUserInfo = b"statusInfo"
 # todo: create option to enable or disable debugging information I dont want to see it unless I ask for it....
 
+
 class Camera(object):
 	def __init__(self, img_width, img_height, img_channels, debug):
 		# get the camera list
@@ -706,27 +707,28 @@ class Camera(object):
 	def releasecontents(node_pointer):
 		node_pointer.contents.release(node_pointer)
 
-	def property_getset(self, camera_parameter, parameter_value):  # type will be grabbed from the xml
-		#self.dprint(f"camera parameter is  {camera_parameter}")
-		#self.dprint(f"parameter_value is  {parameter_value}")
-		#self.dprint(f"xml is is  {self.xml_property_file}")
+	def property_getset(self, camera_parameter, parameter_value=None):  # type will be grabbed from the xml
+		self.dprint(f"camera parameter is  {camera_parameter}")
+		self.dprint(f"parameter_value is  {parameter_value}")
+		self.dprint(f"xml is is  {self.xml_property_file}")
 		# this sets up the camera function, works out what type of command is required, adds the camera then returns
 		# it all ready to apply or read (in our case apply) the value
-		result, node_pointer, node_pointer_info, p_value, node_type = self.genicam_worker(camera_parameter, parameter_value, self.xml_property_file)
+		result, node_pointer, node_pointer_info, p_value, node_type = self.genicam_worker(camera_parameter,
+																						  parameter_value,
+																						  self.xml_property_file)
+		if parameter_value is None:  # we want to read what it is
+			# self.dprint(f"Get value of {camera_parameter} -> a work in progress")
+			result = self.get_value(node_pointer, camera_parameter, p_value,
+									node_type)  # this need to be the camera parameter
+		elif parameter_value == "Execute":  # specifically for an execute call...
+			self.dprint(f"Executing command {camera_parameter} -> a work in progress")
+		# ToDo: Get the command executor working
+		else:  # all other - which is set value
+			final = self.set_value(node_pointer, p_value, node_type)
+		# self.dprint(f'final {final}')
 		if result != 0:  # is this hasnt worked, no point moving on from here....
 			self.dprint(f"setting up the call to the camera has failed => {result}")
-		else:
-			if parameter_value is None:  # we want to read what it is
-				#self.dprint(f"Get value of {camera_parameter} -> a work in progress")
-				result = self.get_value(node_pointer, camera_parameter, p_value, node_type)  # this need to be the camera parameter
-				return result
-			elif parameter_value == "Execute":  # specifically for an execute call...
-				self.dprint(f"Executing command {camera_parameter} -> a work in progress")
-				# ToDo: Get the command executor working
-			else:  # all other - which is set value
-				final = self.set_value(node_pointer, p_value, node_type)
-				self.dprint(f'final {final}')
-				# check validity, check availability & check writeable
+		return result
 
 	# this is still useful because it considers offset and image dimenstions - keep for now
 	def set_roi(self, offset_x, offset_y, n_width, n_height):  # another example from the Contrastech Demo
