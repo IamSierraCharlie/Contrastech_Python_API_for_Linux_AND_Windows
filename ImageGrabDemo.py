@@ -14,7 +14,7 @@ channels = 3
 # of the cv2 window the same.  I had problems here and this appeared to resolve them
 target_framerate = 50
 framerate_cv2_window = int(1000/target_framerate)
-camera = linuxCamsApi.Camera(img_width, img_height, channels, debug=False)
+camera = linuxCamsApi.Camera(img_width, img_height, channels, debug=True)
 # when you create an instance of the camera, it should do the following:
 # gets camera instance
 # gets the genicam schema file - you cannot get the file without connectin to the camera first
