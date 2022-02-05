@@ -2,13 +2,13 @@ import cv2
 import linuxCamsApi
 import numpy as np
 sensor_width = 1280  # this is the actual sensor width not the image_width
-sensor_height = 1024 # this is the actual sensor height not the image_height
+sensor_height = 1024  # this is the actual sensor height not the image_height
 # Ideally, you should select PAL or NTSC supported resolutions
 # others work, but its a bit hit and miss
-img_width = 1280
-img_height = 1024
-offset_x = 0
-offset_y = 0
+img_width = 712
+img_height = 712
+offset_x = 284
+offset_y = 184
 channels = 3
 # this is here to show that you probably should set the framerate of the camera and the framerate
 # of the cv2 window the same.  I had problems here and this appeared to resolve them
@@ -41,16 +41,16 @@ camera.property_getset("ExposureAuto", "Off")
 camera.property_getset("ExposureTime", 15000)
 camera.property_getset("Brightness", 50)
 print("done!")
-brand_name = camera.property_getset("DeviceVendorName", None)
-model_name = camera.property_getset("DeviceModelName", None)
-temp = camera.property_getset("DeviceTemperature", None)
+brand_name = camera.property_getset("DeviceVendorName")
+model_name = camera.property_getset("DeviceModelName")
+temp = camera.property_getset("DeviceTemperature")
 color = list(np.random.random(size=3) * 256)
-camera_name = camera.property_getset("DeviceUserID", None)
+camera_name = camera.property_getset("DeviceUserID")
 counter = 0
 
 while True:
     if counter > target_framerate * 5:
-        temp = camera.property_getset("DeviceTemperature", None)  # dont grab temp every frame
+        temp = camera.property_getset("DeviceTemperature")  # dont grab temp every frame
         color = list(np.random.random(size=3) * 256)
         counter = 0
     image = camera.grab_image()
@@ -59,7 +59,7 @@ while True:
     cv2.imshow(f'{brand_name} {model_name} USB3 Vision Camera => {camera_name}', image)
     k = cv2.waitKey(framerate_cv2_window)
     counter += 1
-    if k == 1048603:  # Esc key to stop
+    if k == 27:  # Esc key to stop
         break
 
 camera.deactivate()
