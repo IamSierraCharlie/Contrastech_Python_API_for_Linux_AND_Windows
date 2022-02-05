@@ -11,7 +11,7 @@ from ctypes import *
 # 32bit
 #ImageConvertdll = cdll.LoadLibrary("./dll/x86/libImageConvert.so")
 # 64bit
-ImageConvertdll = cdll.LoadLibrary("./dll/x64/libImageConvert.so")
+ImageConvertdll = cdll.LoadLibrary("/opt/iCentral/iCentral/lib/libImageConvert.so")
 
 #定义枚举类型
 def enum(**enums):
