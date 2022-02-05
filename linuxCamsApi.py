@@ -11,9 +11,6 @@ import cv2
 g_cameraStatusUserInfo = b"statusInfo"
 
 
-# todo: create option to enable or disable debugging information I dont want to see it unless I ask for it....
-
-
 class Camera(object):
     def __init__(self, img_width, img_height, img_channels, debug):
         # get the camera list
