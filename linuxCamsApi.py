@@ -295,9 +295,10 @@ class Camera(object):
     def create_camera_instance(self):
         camera_count, camera_list = self.enumerate_cameras()
         if camera_count is None:  # no camera handler
-            self.dprint('No camera handler')
+            self.dprint('No camera handler -> program will exit')
+            sys.exit(-99)
         if camera_count > 1:
-            self.dprint('Multiple cameras')
+            self.dprint('Multiple cameras - Ive not encountered this in my setup')
         for index in range(0, camera_count):  # camera details
             self.dprint('Getting camera details\n')
             camera = camera_list[index]
@@ -616,7 +617,7 @@ class Camera(object):
 
     def isreadable(self, node_pointer):
         n_ret = node_pointer.contents.isReadable(node_pointer)
-        self.dprint(f"is readable {n_ret}")
+        self.dprint(f"is readable => {n_ret} (NOTE: 0 is in fact True!!)")
         if n_ret != 0:
             self.releasecontents(node_pointer)
             self.dprint("Not Readable")
@@ -650,7 +651,7 @@ class Camera(object):
                         self.dprint("NODE TYPE 1")
                         max_string_length = c_uint(MAX_STRING_LENTH)  # This is likely never going to be that big
                         n_ret = node_pointer.contents.getValue(node_pointer, parameter_value, byref(max_string_length))
-                        self.dprint(f"## parameter value is {parameter_value.value}")
+                        # self.dprint(f"## parameter value is {parameter_value.value}")
                         if n_ret != 0:
                             self.dprint(f"Could not read a string value {n_ret}")
                             self.dprint(f"You are seeing this result because I havent managed to get this to work yet")
@@ -659,7 +660,8 @@ class Camera(object):
                             return -1
                         else:
                             self.releasecontents(node_pointer)
-                            self.dprint(f'This PARAMETER VALUE IS {parameter_value.value}')
+                            self.dprint(f'This PARAMETER VALUE IS {parameter_value.value} - (NOTE: If this is blank, its '
+                                        f'because the parameter is an empty string)')
                             return bytes(parameter_value.value).decode('utf-8')
                     else:
                         self.dprint("NODE TYPE 0")
@@ -723,13 +725,15 @@ class Camera(object):
         result, node_pointer, node_pointer_info, p_value, node_type = self.genicam_worker(camera_parameter,
                                                                                           parameter_value,
                                                                                           self.xml_property_file)
-        print(camera_parameter)
-        print(p_value)
-        print(result)
+        # print(camera_parameter)
+        # print(p_value)
+        # print(result)
         if parameter_value is None:  # we want to read what it is
             # self.dprint(f"Get value of {camera_parameter} -> a work in progress")
             result = self.get_value(node_pointer, camera_parameter, p_value,
                                     node_type)  # this need to be the camera parameter
+            print(f'result is {result}')
+            return result
         elif parameter_value == "Execute":  # specifically for an execute call...
             self.dprint(f"Executing command {camera_parameter} -> a work in progress")
         # ToDo: Get the command executor working
