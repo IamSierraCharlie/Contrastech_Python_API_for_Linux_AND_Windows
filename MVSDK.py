@@ -1,22 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
-'''
-Created on 2017-10-18
-
-@author: 
-'''
 from ctypes import *
 
-#定义枚举类型
+
 def enum(**enums):
     return type('Enum', (), enums)
 
-#加载SDK动态库
-# 32bit
-#MVSDKdll = cdll.LoadLibrary("./dll/x86/libMVSDK.so")
-# 64bit
+
+# 64bit - if you want to run 32 bit, or in windows, I'd start here for making changes
 MVSDKdll = cdll.LoadLibrary("/opt/iCentral/iCentral/lib/libMVSDK.so")
-#SDK.h => define 宏定义libPluginObject.so
+
+
 MAX_PARAM_CNT        = 1000
 MAX_STRING_LENTH     = 256
 MAX_PAYLOAD_TYPE_CNT = 20 
