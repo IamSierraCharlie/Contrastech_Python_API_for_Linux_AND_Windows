@@ -1,4 +1,4 @@
-# ContrasTech_Python_API_for_Linux
+# ContrasTech_Python_API_for_Linux_And_Windows
 ### What this is
 A working version of a python API for ContrasTech MARS model USB3 Industrial cameras.  This camera doesn't use the standard openCV method of grabbing an image.  It conforms to the 
 GeniCam standard (See https://www.emva.org/standards-technology/genicam/genicam-downloads/) I own a couple of ContrasTech 
@@ -11,7 +11,7 @@ code.  This code I have written is pretty basic, but allows grabbing of a numpy 
 noted that I have fumbled my way to this point to get some working code - I do not profess to be an expert.  My reason 
 for adding this repo is in the hope that some that others may be able to benefit from it as well as contribute to a better 
 version of the code.  This API uses c_types to interface with the dll which is provided by ContrasTech.  I have very 
-limited experience with c_types in Python, but this seems to work just fine!
+limited experience with c_types in Python, but this seems to work just fine - NOW IN BOTH WINDOWS AND LINUX!!!
 
 ### Why use it??
 The main reason is ease of use; if you have little understanding of c_types AND want to use your ContrasTech camera in Linux, then this API makes it easier to set 
@@ -43,15 +43,17 @@ work; as well as the iCentral program supplied by ContrasTech.  Another useful p
 functionality).  Review the ImageGrabDemo.py file and the XML file in conjunction.  You can set properties or get property 
 values by first creating a camera instance and then calling the 'property_getset' command.  Where the second argument 
 is populated, the function will attempt to set a value for the property in question.  If you call 'property_getset' without a value, then it will get 
-the stored value.  This API MAY work in Windows with some tweaking, but I've not tested it.  A good place to start is to 
-change this line of code -> MVSDKdll = cdll.LoadLibrary("/opt/iCentral/iCentral/lib/libMVSDK.so")  in MVSDK.py to look for
-a Windows dll instead...
+the stored value.  This API DOES work in Windows AND I've tested it; although there are a few little buggy issues I need to work on  A good place to start is to 
+
 
 ### Known Issues
-- the software and driver from ContrasTech is confirmed to work up to Ubuntu 20.04.  On October 2020, I checked with 
+- For Linix, the software and driver from ContrasTech is confirmed to work up to Ubuntu 20.04.  On October 2020, I checked with 
 ContrasTech support and they only supported up to 16.04, but I currently run on 20.04 (as of Feb 2022) and haven't noticed any issues. 
-- Program may stop working when the Kernel is updated.  You need to reinstall the driver to the current kernel 
-for it to work properly.  A giveaway for this issue is that the program complains that it is unable to load the driver.  
+- Works in Windows although I've found on occasion that the API fails to get the software trigger to go.  As a result, 
+image grab fails.  The workaround seems to be to close your IDE and try again or restart.  I will provide a fix when I confirm
+the issue and have some more time.
+- Linux - Program may stop working when the Kernel is updated.  You need to reinstall the driver to the current kernel 
+for it to work properly.  A giveaway for this issue is that the program may complain that it is unable to load the driver.  
 The fix is to reinstall iCentral which will compile the module and install again. 
 - my code writing is crap - yes I know.  I cannot commit the time I want to for these things, but I'm working on it.  
 Constructive criticisms is always appreciated...
