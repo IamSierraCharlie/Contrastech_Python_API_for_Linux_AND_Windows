@@ -1,5 +1,5 @@
 import cv2
-import linuxCamsApi
+import camsApi
 import numpy as np
 sensor_width = 1280  # this is the actual sensor width not the image_width
 sensor_height = 1024  # this is the actual sensor height not the image_height

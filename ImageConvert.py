@@ -1,21 +1,23 @@
 #!/usr/bin/env python
 # coding: utf-8
-'''
-Created on 2017-10-26
-
-@author: 
-'''
+import os
 from ctypes import *
 
 # 加载ImageConvert库
 # 32bit
 #ImageConvertdll = cdll.LoadLibrary("./dll/x86/libImageConvert.so")
 # 64bit
-ImageConvertdll = cdll.LoadLibrary("/opt/iCentral/iCentral/lib/libImageConvert.so")
+if os.name == 'nt':  # for windows
+    print('loaded dll for windows')
+    ImageConvertdll = cdll.LoadLibrary("C:\\Program Files\\iCentral\iCentral\\Application\\x64\\ImageConvert.dll")
+else:
+    print('loaded dll for linux')
+    ImageConvertdll = cdll.LoadLibrary("/opt/iCentral/iCentral/lib/libImageConvert.so")
 
-#定义枚举类型
+
 def enum(**enums):
     return type('Enum', (), enums)
+
 
 # ImageConvert.h => enum tagIMGCNV_EErr
 IMGCNV_EErr = enum(
@@ -25,6 +27,7 @@ IMGCNV_EErr = enum(
                       IMGCNV_NO_MEMORY=3,
                       IMGCNV_NOT_SUPPORT=4,
                       )
+
 
 # ImageConvert.h => struct tagIMGCNV_SOpenParam
 class IMGCNV_SOpenParam(Structure):

@@ -325,6 +325,9 @@ class Camera(object):
                     filecount = zip_ref.namelist()
                     self.dprint(f"fc is {filecount[0]}")
                     zip_ref.extract(filecount[0])
+                    # check if file exists and delete if it does - do it this way so you always get a new file
+                    if os.path.exists(xmlfile):
+                        os.remove(xmlfile)
                     os.rename(filecount[0], xmlfile)
                     self.xml_property_file = xmlfile
                 os.remove(zippedfilename)

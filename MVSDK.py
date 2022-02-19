@@ -1,14 +1,21 @@
 #!/usr/bin/env python
 # coding: utf-8
+import os
 from ctypes import *
 
 
 def enum(**enums):
     return type('Enum', (), enums)
 
-
 # 64bit - if you want to run 32 bit, or in windows, I'd start here for making changes
-MVSDKdll = cdll.LoadLibrary("/opt/iCentral/iCentral/lib/libMVSDK.so")
+
+
+if os.name == 'nt':  # for windows
+    print('loaded dll for windows')
+    MVSDKdll = cdll.LoadLibrary("C:\\Program Files\\iCentral\\iCentral\\Application\\x64\\MVSDKmd.dll")
+else:
+    print('loaded dll for linux')
+    MVSDKdll = cdll.LoadLibrary("/opt/iCentral/iCentral/lib/libMVSDK.so")
 
 
 MAX_PARAM_CNT        = 1000
