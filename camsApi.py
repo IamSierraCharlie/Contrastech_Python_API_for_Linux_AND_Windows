@@ -1,3 +1,4 @@
+import time
 from ImageConvert import *
 from MVSDK import *  # only for the contrastech camera
 import numpy as np
@@ -364,10 +365,12 @@ class Camera(object):
         n_ret = self.image_source.contents.getFrame(self.image_source, byref(frame), c_uint(1000))
 
         if n_ret != 0:
-            self.dprint("SoftTrigger getFrame fail! timeOut [1000]ms")
+            self.dprint(f"SoftTrigger getFrame fail! timeOut [1000]ms -> {n_ret}")
+            self.dprint("Not catastrophic so continuing")
+            self.dprint("You should only see this at the start of image grabbing")
             # Release related resources
-            self.deactivate()
-            self.image_source.contents.release(self.image_source)
+            # self.deactivate()
+            # self.image_source.contents.release(self.image_source)
             return -1
         else:
             # self.dprint("SoftTrigger getFrame success BlockId = " + str(frame.contents.getBlockId(frame)))
@@ -418,6 +421,8 @@ class Camera(object):
     def genicam_worker(self, camera_parameter, parameter_value, camera_xml_file):
         # return the command type, a pointer and a pointers info
         # if the parameter value is empty, the go into read mode
+        print(f'camera_parameter is {camera_parameter}')
+        print(f'parameter_value is {parameter_value}')
         node_pointer = None
         node_pointer_info = None
         ctypes_value = None
@@ -551,9 +556,9 @@ class Camera(object):
                                         n_ret = GENICAM_createStringNode(byref(node_pointer_info), byref(node_pointer))
                                     else:  # get parameter value from the camera
                                         ctypes_value = create_string_buffer(MAX_STRING_LENTH)  # MAX_STRING_LENTH is 256
-                                        self.dprint('x')
+                                        #self.dprint('x')
                                         n_ret = GENICAM_createStringNode(byref(node_pointer_info), byref(node_pointer))
-                                        self.dprint('y')
+                                        #self.dprint('y')
 
                                     break
 
