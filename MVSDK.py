@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
+# ACKNOWLEDGEMENT
+# Pretty much ALL of this file was provided by Contrastech as part of their demo from the iCentral install
 import os
 from ctypes import *
 
