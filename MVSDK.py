@@ -254,7 +254,7 @@ GENICAM_Frame_getImageTimeStamp = eval('CFUNCTYPE')(c_ulonglong, POINTER(GENICAM
 GENICAM_Frame_getBlockId = eval('CFUNCTYPE')(c_ulonglong, POINTER(GENICAM_Frame))
 GENICAM_Frame_getPayLoadTypes = eval('CFUNCTYPE')(c_int, POINTER(GENICAM_Frame), c_int * MAX_PAYLOAD_TYPE_CNT, POINTER(c_uint))
 GENICAM_Frame_getChunkCount = eval('CFUNCTYPE')(c_uint, POINTER(GENICAM_Frame))
-GENICAM_Frame_getChunkDataByIndex = eval('CFUNCTYPE')(c_int, POINTER(GENICAM_Frame), c_uint, POINTER(c_uint), \
+GENICAM_Frame_getChunkDataByIndex = eval('CFUNCTYPE')(c_int, POINTER(GENICAM_Frame), c_uint, POINTER(c_uint),
                                                       c_char* MAX_STRING_LENTH * MAX_PARAM_CNT, POINTER(c_uint))
 GENICAM_Frame_getImagePaddingX = eval('CFUNCTYPE')(c_uint, POINTER(GENICAM_Frame))
 GENICAM_Frame_getImagePaddingY = eval('CFUNCTYPE')(c_uint, POINTER(GENICAM_Frame))
