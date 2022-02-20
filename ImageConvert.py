@@ -1,12 +1,8 @@
-#!/usr/bin/env python
-# coding: utf-8
+# ACKNOWLEDGEMENT
+# Pretty much ALL of this file was provided by Contrastech as part of their demo from the iCentral install
 import os
 from ctypes import *
 
-# 加载ImageConvert库
-# 32bit
-# ImageConvertdll = cdll.LoadLibrary("./dll/x86/libImageConvert.so")
-# 64bit
 if os.name == 'nt':  # for windows
     print('loaded dll for windows')
     ImageConvertdll = cdll.LoadLibrary("C:\\Program Files\\iCentral\\iCentral\\Application\\x64\\ImageConvert.dll")
