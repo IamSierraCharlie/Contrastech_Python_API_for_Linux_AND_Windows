@@ -43,11 +43,11 @@ work; as well as the iCentral program supplied by ContrasTech.  Another useful p
 functionality).  Review the ImageGrabDemo.py file and the XML file in conjunction.  You can set properties or get property 
 values by first creating a camera instance and then calling the 'property_getset' command.  Where the second argument 
 is populated, the function will attempt to set a value for the property in question.  If you call 'property_getset' without a value, then it will get 
-the stored value.  This API DOES work in Windows AND I've tested it; although there are a few little buggy issues I need to work on  A good place to start is to 
+the stored value.  This API DOES work in Windows AND I've tested it; although there are a few little buggy issues that need work.
 
 
 ### Known Issues
-- For Linix, the software and driver from ContrasTech is confirmed to work up to Ubuntu 20.04.  On October 2020, I checked with 
+- For Linux, the software and driver from ContrasTech is confirmed to work up to Ubuntu 20.04.  On October 2020, I checked with 
 ContrasTech support and they only supported up to 16.04, but I currently run on 20.04 (as of Feb 2022) and haven't noticed any issues. 
 - Works in Windows although I've found on occasion that the API fails to get the software trigger to go.  As a result, 
 image grab fails.  The workaround seems to be to close your IDE and try again or restart.  I will provide a fix when I confirm
