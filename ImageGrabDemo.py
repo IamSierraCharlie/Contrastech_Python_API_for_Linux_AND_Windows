@@ -1,10 +1,13 @@
 import cv2
 import camsApi
 import numpy as np
-sensor_width = 1280  # this is the actual sensor width not the image_width
-sensor_height = 1024  # this is the actual sensor height not the image_height
+
 # Ideally, you should select PAL or NTSC supported resolutions
 # others work, but its a bit hit and miss
+
+# want to create a function that sets the image width and then sets the offset according to what is left not being used
+# I dont think you can just set any image width - I believe it needs to be divisible by 4??
+# check this...
 img_width = 712
 img_height = 712
 offset_x = 284
@@ -25,32 +28,41 @@ print("setting some properties")
 # the offset needs to be considered with setting the Width and height
 # camera.property_set(setting="DeviceReset", option='Execute', featuretype='Command')
 # its probably better to instantiate the camera pointer once in the linuxCamsApi.....
-camera.property_getset("AcquisitionFrameRate", target_framerate)
-camera.property_getset("DeviceTemperatureSelector", "Sensor")
-camera.property_getset("OffsetX", offset_x)
-camera.property_getset("OffsetY", offset_y)
-camera.property_getset("Width", img_width)
-camera.property_getset("Height", img_height)
-camera.property_getset("TriggerSource", "Software")
-camera.property_getset("TriggerSelector", "FrameStart")
-camera.property_getset("AcquisitionMode", "Continuous")
+
+# you could create a properties file i.e. a dictionary or a JSON file - open the json file, read its contents and then
+# apply accordingly
+camera.property("AcquisitionFrameRate", target_framerate)
+camera.property("DeviceTemperatureSelector", "Sensor")
+camera.property("OffsetX", offset_x)
+camera.property("OffsetY", offset_y)
+camera.property("Width", img_width)
+camera.property("Height", img_height)
+camera.property("TriggerSource", "Software")
+camera.property("TriggerSelector", "FrameStart")
+camera.property("AcquisitionMode", "Continuous")
 # activates the camera - light should start flashing on the back
-camera.property_getset("TriggerMode", "On")
+camera.property("TriggerMode", "On")
 camera.activate()
-camera.property_getset("ExposureAuto", "Off")
-camera.property_getset("ExposureTime", 15000)
-camera.property_getset("Brightness", 50)
+camera.property("ExposureAuto", "Off")
+camera.property("ExposureTime", 15000)
+camera.property("Brightness", 50)
 print("done!")
-brand_name = camera.property_getset("DeviceVendorName")
-model_name = camera.property_getset("DeviceModelName")
-temp = camera.property_getset("DeviceTemperature")
+brand_name = camera.property("DeviceVendorName")
+model_name = camera.property("DeviceModelName")
+temp = camera.property("DeviceTemperature")
 color = list(np.random.random(size=3) * 256)
-camera_name = camera.property_getset("DeviceUserID")
+camera_name = camera.property("DeviceUserID")
 counter = 0
+print('Get sensor width, height')
+# where do I get this info from??
+# Check in iCentral under "Features" - dont forget to select Guru
+sensor_width = camera.property("SensorWidth")
+sensor_height = camera.property("SensorHeight")
+
 
 while True:
     if counter > target_framerate * 5:
-        temp = camera.property_getset("DeviceTemperature")  # dont grab temp every frame
+        temp = camera.property("DeviceTemperature")  # dont grab temp every frame
         color = list(np.random.random(size=3) * 256)
         counter = 0
     image = camera.grab_image()
