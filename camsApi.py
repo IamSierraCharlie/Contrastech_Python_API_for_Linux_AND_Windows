@@ -363,14 +363,13 @@ class Camera(object):
         frame = pointer(GENICAM_Frame())
         # self.dprint(datetime.datetime.now().strftime("%y%m%d%H%M%S"))
         n_ret = self.image_source.contents.getFrame(self.image_source, byref(frame), c_uint(1000))
-
         if n_ret != 0:
             self.dprint(f"SoftTrigger getFrame fail! timeOut [1000]ms -> {n_ret}")
             self.dprint("Not catastrophic so continuing")
             self.dprint("You should only see this at the start of image grabbing")
             # Release related resources
             # self.deactivate()
-            # self.image_source.contents.release(self.image_source)
+            # self.image_source.contents.release(self.image_source)  # in this instance,
             return -1
         else:
             # self.dprint("SoftTrigger getFrame success BlockId = " + str(frame.contents.getBlockId(frame)))
@@ -724,7 +723,7 @@ class Camera(object):
     def releasecontents(node_pointer):
         node_pointer.contents.release(node_pointer)
 
-    def property_getset(self, camera_parameter, parameter_value=None):  # type will be grabbed from the xml
+    def property(self, camera_parameter, parameter_value=None):  # type will be grabbed from the xml
         self.dprint(f"camera parameter is  {camera_parameter}")
         self.dprint(f"parameter_value is  {parameter_value}")
         self.dprint(f"xml is is  {self.xml_property_file}")
