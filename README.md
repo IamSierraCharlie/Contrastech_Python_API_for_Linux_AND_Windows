@@ -37,7 +37,10 @@ using Ubuntu 20.04 and whilst not officially supported by ContrasTech, it works 
 - Python Modules -> c_types, opencv2, numpy
 - The ContrasTech Software Development Kit for Linux (x86) (aka iCentral) - this includes the driver required to run the 
 camera in Linux and can be found at http://www.contrastech.com/upload/down/Mars/Linux/iCentral_Ver2.2.6_Linux_x86_Build20210705.zip
-- An x86 computer....  32bit or 64bit.  Windows or Linux.  THIS CAMERA WILL NOT CURRENTLY WORK WITH NON X86 PROCESSORS
+or for Windows http://www.contrastech.com/upload/down/Mars/Win/iCentral_2.2.6_EN.zip
+- An x86 computer....  32bit or 64bit.  Windows or Linux.  I was initially advised that only LEO cameras would work on
+ARM processors, but there is an SDK for MARS cameras for ARM processors here:  http://www.contrastech.com/en/service/005001.html
+Raspberry Pi (for example) support is unknown - but I was advised it wasn't supported.....(watch this space???)
 
 ### Getting this API to work
 Review and/or run ImageGrabDemo.py with a ContrasTech USB3 Camera such as the Mars 1300-201uc, and it should work.  There
