@@ -72,6 +72,10 @@ ran this in Windows for the most part due to this driver issue.  I did have succ
 work in Linux, although I never put it into production.  I plan to make some changes to this code so that the camera will 
 accept a signal from an external sensor to time the image grabs as opposed to just grabbing an image every
 N seconds.  Timing is everything on a production line!  If you are doing something similar, I'd be keen to hear about it!
+- I am hoping to develop high level and low level functions.  I'm finding that certain commands need to be run in a certain
+order to work properly.  High level functions will assemble low level functions in the correct order and offer better error 
+handling for users.  Examples of this could be setting the image dimensions.  High level commands could check for validity 
+before applying them and return a failure if the dimensions were not within correct parameters.....
 
 ### Working Example
 Here is my dog Pip
