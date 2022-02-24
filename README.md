@@ -2,7 +2,7 @@
 ### What this is
 A working version of a python API for ContrasTech MARS model USB3 Industrial cameras.  This camera doesn't use the standard openCV method of grabbing an image.  It conforms to the 
 GeniCam standard (See https://www.emva.org/standards-technology/genicam/genicam-downloads/) I own a couple of ContrasTech 
-MARS cameras http://www.ContrasTech.com/content/?875.html and have had to use 3rd party APIs to get Windows functionality 
+MARS cameras http://www.contrastech.com/en/product/004000007001.html#sx and have had to use 3rd party APIs to get Windows functionality 
 for these cameras in Python.  Let me be the first to say that the one I have used has been very good for what I need, but 
 other than Aravis, I have not been able to find anything that works for Linux for Python that allows grabbing of images 
 in a numpy nd.array style image grab; at least not for this camera under Linux.  ContrasTech was good enough to 
@@ -20,6 +20,7 @@ up your USB3 Industrial camera.  Getting and setting parameter values is very ea
 ### Known working cameras 
 Tested and confirmed on the following Industrial USB3 Camera
 - Mars1300-210uc
+- Mars800-545um
 Any other Mars USB3 camera from ContrasTech should work also.
 With some minor adjustments, you could probably use this for a GIG-E camera also.
 
@@ -28,13 +29,15 @@ If you own one of these cameras and work in Linux and can use this code, then pl
 The script 'image_grab_demo.py' is provided as an example to show the code working - again, very basic.
 Essentially, I have historically created an instance of the camera, activated the camera, grabbed an image and then deactivated it
 ContrasTech provided a very basic demo, and I have only used that demo to make what is provided. 
+This code has been set up to run on a 54bit system, but you could change to 32bit with minimal effort (out of my scope)
 
 ### Prerequisites
-- An installation of Python on a Linux Operating System (I used Anaconda with Python 3.6 on Ubuntu 16.04  ) As of 2022, I am 
+- An installation of Python on a Linux Operating System (I used Anaconda with Python 3.6 on Ubuntu) As of 2022, I am 
 using Ubuntu 20.04 and whilst not officially supported by ContrasTech, it works without issue.
 - Python Modules -> c_types, opencv2, numpy
 - The ContrasTech Software Development Kit for Linux (x86) (aka iCentral) - this includes the driver required to run the 
 camera in Linux and can be found at http://www.contrastech.com/upload/down/Mars/Linux/iCentral_Ver2.2.6_Linux_x86_Build20210705.zip
+- An x86 computer....  32bit or 64bit.  Windows or Linux.  THIS CAMERA WILL NOT CURRENTLY WORK WITH NON X86 PROCESSORS
 
 ### Getting this API to work
 Review and/or run ImageGrabDemo.py with a ContrasTech USB3 Camera such as the Mars 1300-201uc, and it should work.  There
@@ -45,11 +48,11 @@ values by first creating a camera instance and then calling the 'property_getset
 is populated, the function will attempt to set a value for the property in question.  If you call 'property_getset' without a value, then it will get 
 the stored value.  This API DOES work in Windows AND I've tested it; although there are a few little buggy issues that need work.
 
-
 ### Known Issues
 - For Linux, the software and driver from ContrasTech is confirmed to work up to Ubuntu 20.04.  On October 2020, I checked with 
-ContrasTech support and they only supported up to 16.04, but I currently run on 20.04 (as of Feb 2022) and haven't noticed any issues. 
-- Works in Windows although I've found on occasion that the API fails to get the software trigger to go.  As a result, 
+ContrasTech support. Their feedback is that they only supported up to 16.04, but I currently run on 20.04 (as of Feb 2022) 
+and haven't noticed any issues. 
+- Works in Windows; although I've found on occasion that the API fails to get the software trigger to go.  As a result, 
 image grab fails.  The workaround seems to be to close your IDE and try again or restart.  I will provide a fix when I confirm
 the issue and have some more time.
 - Linux - Program may stop working when the Kernel is updated.  You need to reinstall the driver to the current kernel 
@@ -69,13 +72,6 @@ ran this in Windows for the most part due to this driver issue.  I did have succ
 work in Linux, although I never put it into production.  I plan to make some changes to this code so that the camera will 
 accept a signal from an external sensor to time the image grabs as opposed to just grabbing an image every
 N seconds.  Timing is everything on a production line!  If you are doing something similar, I'd be keen to hear about it!
-
-- Other cool things - if you could get it to work on a Raspberry Pi, you could use Tensorflow to read speed signs or stop signs...
-- I have a Daheng Mercury camera also.  I have done some testing on it and some of it works.  You can grab camera details,
-but not much else. It leads me to believe that I am not far from building something that might work for multiple cameras.  
-I guess every camera manufacturer has a subtle way of doing the same thing a little differently.  Perhaps there is an 
-opportunity to get functionality on other cameras? 
-- My focus is on a production line though...
 
 ### Working Example
 Here is my dog Pip
