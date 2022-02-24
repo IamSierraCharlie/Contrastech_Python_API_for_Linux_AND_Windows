@@ -8,8 +8,16 @@ import numpy as np
 # want to create a function that sets the image width and then sets the offset according to what is left not being used
 # I dont think you can just set any image width - I believe it needs to be divisible by 4??
 # check this...
+
+# TODO: These settings much match your camera - you must set the image width to be less that the maximum
+# Width and Height of your camera sensor
+# Also note that your image width / height must be divisible by 4 to my knowledge.
+# You may wish to check and verify this
 img_width = 712
 img_height = 712
+# TODO: If you wish to centralize your image on the centre of your camera sensor, then you need to set the offset below
+# The offset for width is typically calculated by (Sensor width - image width (above)) / 2
+# The offset for height is typically calculated by (Sensor height - image height (above)) / 2
 offset_x = 284
 offset_y = 184
 channels = 3
