@@ -1,4 +1,8 @@
 # ContrasTech_Python_API_for_Linux_And_Windows
+
+#### Operating Systems - Windows 10, Linux (Ubuntu 20.04 and 20.10) nb: this is for Python 3.x
+#### Architecture - X86 or Arm (Raspberry Pi 4 Tested and working)
+
 ### What this is
 A working version of a python API for ContrasTech MARS model USB3 Industrial cameras.  This camera doesn't use the standard openCV method of grabbing an image.  It conforms to the 
 GeniCam standard (See https://www.emva.org/standards-technology/genicam/genicam-downloads/) I own a couple of ContrasTech 
@@ -26,10 +30,10 @@ With some minor adjustments, you could probably use this for a GIG-E camera also
 
 If you own one of these cameras and work in Linux and can use this code, then please do so.  Also, please contribute anything you feel to be of benefit.
 ### Example use
-The script 'image_grab_demo.py' is provided as an example to show the code working - again, very basic.
+The script 'ImageGrabDemo.py' is provided as an example to show the code working - again, very basic.
 Essentially, I have historically created an instance of the camera, activated the camera, grabbed an image and then deactivated it
 ContrasTech provided a very basic demo, and I have only used that demo to make what is provided. 
-This code has been set up to run on a 54bit system, but you could change to 32bit with minimal effort (out of my scope)
+This code has been set up to run on a 64bit system, but you could change to 32bit with minimal effort (out of my scope)
 
 ### Prerequisites
 - An installation of Python on a Linux Operating System (I used Anaconda with Python 3.6 on Ubuntu) As of 2022, I am 
@@ -38,9 +42,13 @@ using Ubuntu 20.04 and whilst not officially supported by ContrasTech, it works 
 - The ContrasTech Software Development Kit for Linux (x86) (aka iCentral) - this includes the driver required to run the 
 camera in Linux and can be found at http://www.contrastech.com/upload/down/Mars/Linux/iCentral_Ver2.2.6_Linux_x86_Build20210705.zip
 or for Windows http://www.contrastech.com/upload/down/Mars/Win/iCentral_2.2.6_EN.zip
-- An x86 computer....  32bit or 64bit.  Windows or Linux.  I was initially advised that only LEO cameras would work on
-ARM processors, but there is an SDK for MARS cameras for ARM processors here:  http://www.contrastech.com/en/service/005001.html
-Raspberry Pi (for example) support is unknown - but I was advised it wasn't supported.....(watch this space???)
+- An x86 computer 32bit or 64bit.  Windows or Linux.
+- Raspberry Pi - http://www.contrastech.com/en/service/005001.html as of Feb 2022, Raspberry Pi 4 is known to be working.
+I tested it and even though there are errors during the installation, this software still works.  When I did the install of 
+iCentral, I installed build-essential as well as linux-modules-extra-raspi.  After running the iCentral.run file, as root,
+I did see errors complaining about missing .ko files, but running the demo worked.  Need to understand that a little better
+but it is fundamentally working.
+
 
 ### Getting this API to work
 Review and/or run ImageGrabDemo.py with a ContrasTech USB3 Camera such as the Mars 1300-201uc, and it should work.  There
