@@ -13,12 +13,13 @@ g_cameraStatusUserInfo = b"statusInfo"
 
 
 class Camera(object):
-    def __init__(self, img_width, img_height, img_channels, debug):
+    def __init__(self, debug=False):
+#        def __init__(self, img_width, img_height, img_channels=3, centre_resolution=True, debug=False):
         # get the camera list
         self.debug = debug
-        self.img_width = img_width
-        self.img_height = img_height
-        self.img_channels = img_channels
+        self.img_width = None
+        self.img_height = None
+        self.img_channels = None
         self.image_source = None
         self.frame = None
         self.userInfo = None
@@ -28,20 +29,86 @@ class Camera(object):
         self.info = None
         self.temperature = None
         self.acqCtrl = None
-        self.max_width = None
-        self.max_height = None
         self.connectCallBackFunc = connectCallBack(self.device_link_notify)
         self.connectCallBackFuncEx = connectCallBackEx(self.device_link_notify)
         self.frameCallbackFunc = callbackFunc(self.on_get_frame)
         self.create_camera_instance()  # instantiated upon calling the camera Class
+        #self.set_camera_resolution(img_width, img_height)
+        #self.set_offset(centre_resolution)
 
-    # offset_x, offset_y = self.check_image_dimension_validity(sensor_width, sensor_height, img_width, img_height)
+    def set_camera_resolution(self, width: int, height: int, img_channels=3, centre_resolution=True):
+        """
+        @param self: A high level function to easily set your intended image resolution
+        @param width: An integer less than or equal to sensor width
+        @param height: An integer less than or equal to sensor height
+        @param img_channels: An integer of color channels
+        (I've never seen this other than 3, but I suppose it's possible for other cameras?)
+        @param centre_resolution: A bool - is the image in the centre of the sensor of on the edge?
+        """
+        if self.campointer is None:
+            self.dprint('No camera - you must create a camera instance')
+        else:
+            self.img_width = self.check_width(width)
+            self.img_height = self.check_height(height)
+            self.img_channels = img_channels
+            # you must sent the offsets back to zero here otherwise this will fail
+            self.set_offset(centre_resolution)
+            self.property("Width", self.img_width)
+            self.property("Height", self.img_height)
+
+    def check_width(self, width):
+        max_width = self.property("SensorWidth")
+        self.dprint(f'Sensor max width is {max_width}')
+        if width > max_width:
+            self.dprint('Selected width exceeds the maximum allowable width - setting the width to the maximum')
+            width = max_width
+        else:
+            width = self.check_dimension(width)
+        self.dprint(f'Width after check is {width}')
+        return width
+
+    def check_height(self, height):
+        max_height = self.property("SensorHeight")
+        self.dprint(f'Sensor max height is {max_height}')
+        if height > max_height:
+            self.dprint('Selected height exceeds the maximum allowable width - setting the height to the maximum')
+            height = max_height
+        else:
+            height = self.check_dimension(height)
+        self.dprint(f'Height after check is {height}')
+        return height
+
+    def check_dimension(self, dimension):
+        while dimension % 4 != 0:
+            self.dprint(f'width or height of {dimension} is not divisible by 4, reducing it until is it')
+            dimension -= 1
+        return dimension
+
+    def set_offset(self, centre_resolution):
+        max_width = self.property("SensorWidth")
+        max_height = self.property("SensorHeight")
+        #current_width = self.property("Width")
+        #current_height = self.property("Height")
+        offset_x = 0
+        offset_y = 0
+        self.dprint(f'sssssssssssssssssssss {self.img_width}, {self.img_height}')
+        self.property("OffsetX", 0)
+        self.property("OffsetY", 0)
+        if centre_resolution is True:
+            if self.img_width < max_width:
+                self.dprint('setting offset')
+                offset_x = int((max_width - self.img_width) / 2)
+            if self.img_height < max_height:
+                self.dprint('setting offset')
+                offset_y = int((max_height - self.img_height) / 2)
+        self.dprint(f'OffsetX is {offset_x} and OffsetY is {offset_y}')
+        self.property("OffsetX", offset_x)
+        self.property("OffsetY", offset_y)
 
     def dprint(self, message):
         if self.debug is True:
             print(message)
 
-    # self.set_roi(self.cam, offset_x, offset_y, img_width, img_height)
     # this function reports the camera status.  It will output issues to the cmd prompt
     def device_link_notify(self, connect_arg, link_info):
         if EVType.offLine == connect_arg.contents.m_event:

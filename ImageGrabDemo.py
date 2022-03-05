@@ -13,22 +13,18 @@ import numpy as np
 # Width and Height of your camera sensor
 # Also note that your image width / height must be divisible by 4 to my knowledge.
 # You may wish to check and verify this
-img_width = 712
-img_height = 712
-# TODO: If you wish to centralize your image on the centre of your camera sensor, then you need to set the offset below
-# The offset for width is typically calculated by (Sensor width - image width (above)) / 2
-# The offset for height is typically calculated by (Sensor height - image height (above)) / 2
-offset_x = 284
-offset_y = 184
+img_width = 640
+img_height = 480
 channels = 3
 # this is here to show that you probably should set the framerate of the camera and the framerate
 # of the cv2 window the same.  I had problems here and this appeared to resolve them
 target_framerate = 50
 framerate_cv2_window = int(1000/target_framerate)
-camera = camsApi.Camera(img_width, img_height, channels, debug=True)
+camera = camsApi.Camera(debug=True)
+camera.set_camera_resolution(img_width, img_height, img_channels=3, centre_resolution=False)
 # when you create an instance of the camera, it should do the following:
 # gets camera instance
-# gets the genicam schema file - you cannot get the file without connectin to the camera first
+# gets the genicam schema file - you cannot get the file without connecting to the camera first
 # unzips it
 # gets the unzipped file and loads it as a variable
 
@@ -41,10 +37,12 @@ print("setting some properties")
 # apply accordingly
 camera.property("AcquisitionFrameRate", target_framerate)
 camera.property("DeviceTemperatureSelector", "Sensor")
-camera.property("OffsetX", offset_x)
-camera.property("OffsetY", offset_y)
-camera.property("Width", img_width)
-camera.property("Height", img_height)
+# the following have been left here as an example - they are not deprecated - more superseded by the new high level
+# function set_camera_resolution
+#camera.property("OffsetX", offset_x)
+#camera.property("OffsetY", offset_y)
+#camera.property("Width", img_width)
+#camera.property("Height", img_height)
 camera.property("TriggerSource", "Software")
 camera.property("TriggerSelector", "FrameStart")
 camera.property("AcquisitionMode", "Continuous")
