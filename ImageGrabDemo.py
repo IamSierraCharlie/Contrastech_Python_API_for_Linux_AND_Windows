@@ -9,10 +9,8 @@ import numpy as np
 # I dont think you can just set any image width - I believe it needs to be divisible by 4??
 # check this...
 
-# TODO: These settings much match your camera - you must set the image width to be less that the maximum
-# Width and Height of your camera sensor
-# Also note that your image width / height must be divisible by 4 to my knowledge.
-# You may wish to check and verify this
+# TODO: With the latest additions, all you need to do is set the image and height.  Channels is now 3 by default and
+#  you dont need to even set it.
 img_width = 640
 img_height = 480
 channels = 3
@@ -21,28 +19,20 @@ channels = 3
 target_framerate = 50
 framerate_cv2_window = int(1000/target_framerate)
 camera = camsApi.Camera(debug=True)
+# TODO: Once you create your camera instance as above, then you can set your resolution as per below
+#  if img_channels is not included, it will automatically be 3
+#  if centre_resolution is not included, it will automatically be set to true (I'd normally have resolution centred)
 camera.set_camera_resolution(img_width, img_height, img_channels=3, centre_resolution=False)
-# when you create an instance of the camera, it should do the following:
-# gets camera instance
-# gets the genicam schema file - you cannot get the file without connecting to the camera first
-# unzips it
-# gets the unzipped file and loads it as a variable
-
+# TODO: Additionally, you can also set properties as per below
 print("setting some properties")
-# the offset needs to be considered with setting the Width and height
-# camera.property_set(setting="DeviceReset", option='Execute', featuretype='Command')
-# its probably better to instantiate the camera pointer once in the linuxCamsApi.....
-
-# you could create a properties file i.e. a dictionary or a JSON file - open the json file, read its contents and then
-# apply accordingly
 camera.property("AcquisitionFrameRate", target_framerate)
 camera.property("DeviceTemperatureSelector", "Sensor")
-# the following have been left here as an example - they are not deprecated - more superseded by the new high level
-# function set_camera_resolution
-#camera.property("OffsetX", offset_x)
-#camera.property("OffsetY", offset_y)
-#camera.property("Width", img_width)
-#camera.property("Height", img_height)
+# TODO: the following have been left here as an example - they are not deprecated - more superseded by the new high
+#  level function set_camera_resolution
+# camera.property("OffsetX", offset_x)
+# camera.property("OffsetY", offset_y)
+# camera.property("Width", img_width)
+# camera.property("Height", img_height)
 camera.property("TriggerSource", "Software")
 camera.property("TriggerSelector", "FrameStart")
 camera.property("AcquisitionMode", "Continuous")
@@ -60,11 +50,10 @@ color = list(np.random.random(size=3) * 256)
 camera_name = camera.property("DeviceUserID")
 counter = 0
 print('Get sensor width, height')
-# where do I get this info from??
-# Check in iCentral under "Features" - dont forget to select Guru
+# TODO: where do I get this info from??
+#  Check in iCentral under "Features" - don't forget to select Guru
 sensor_width = camera.property("SensorWidth")
 sensor_height = camera.property("SensorHeight")
-
 
 while True:
     if counter > target_framerate * 5:

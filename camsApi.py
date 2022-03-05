@@ -14,8 +14,6 @@ g_cameraStatusUserInfo = b"statusInfo"
 
 class Camera(object):
     def __init__(self, debug=False):
-#        def __init__(self, img_width, img_height, img_channels=3, centre_resolution=True, debug=False):
-        # get the camera list
         self.debug = debug
         self.img_width = None
         self.img_height = None
@@ -33,17 +31,16 @@ class Camera(object):
         self.connectCallBackFuncEx = connectCallBackEx(self.device_link_notify)
         self.frameCallbackFunc = callbackFunc(self.on_get_frame)
         self.create_camera_instance()  # instantiated upon calling the camera Class
-        #self.set_camera_resolution(img_width, img_height)
-        #self.set_offset(centre_resolution)
 
     def set_camera_resolution(self, width: int, height: int, img_channels=3, centre_resolution=True):
         """
-        @param self: A high level function to easily set your intended image resolution
-        @param width: An integer less than or equal to sensor width
-        @param height: An integer less than or equal to sensor height
-        @param img_channels: An integer of color channels
+        A high level function to easily set your intended image resolution
+
+        :param width: An integer less than or equal to sensor width
+        :param height: An integer less than or equal to sensor height
+        :param img_channels: An integer of color channels
         (I've never seen this other than 3, but I suppose it's possible for other cameras?)
-        @param centre_resolution: A bool - is the image in the centre of the sensor of on the edge?
+        :param centre_resolution: A bool - is the image in the centre of the sensor of on the edge?
         """
         if self.campointer is None:
             self.dprint('No camera - you must create a camera instance')
@@ -417,6 +414,11 @@ class Camera(object):
                 return camera_list[0]
 
     def grab_image(self):
+        """
+        Easy means to gram an image
+
+        :return: An image ND style array which can be used or manipulated by opencv or pillow (for example)
+        """
         trig_software_cmd_node = self.acqCtrl.contents.triggerSoftware(self.acqCtrl)
         n_ret = trig_software_cmd_node.execute(byref(trig_software_cmd_node))
         if n_ret != 0:
@@ -431,6 +433,7 @@ class Camera(object):
         # self.dprint(datetime.datetime.now().strftime("%y%m%d%H%M%S"))
         n_ret = self.image_source.contents.getFrame(self.image_source, byref(frame), c_uint(1000))
         if n_ret != 0:
+            # TODO: this needs work as incorrect formatting can cause failures at this point.
             self.dprint(f"SoftTrigger getFrame fail! timeOut [1000]ms -> {n_ret}")
             self.dprint("Not catastrophic so continuing")
             self.dprint("You should only see this at the start of image grabbing")
@@ -458,13 +461,6 @@ class Camera(object):
         convert_params.paddingX = frame.contents.getImagePaddingX(frame)
         convert_params.paddingY = frame.contents.getImagePaddingY(frame)
         convert_params.pixelFormat = frame.contents.getImagePixelFormat(frame)
-        # self.dprint('dataSize', imageSize)
-        # self.dprint('height', frame.contents.getImageHeight(frame))
-        # self.dprint('width', frame.contents.getImageWidth(frame))
-        # self.dprint('paddingX', frame.contents.getImagePaddingX(frame))
-        # self.dprint('paddingY', frame.contents.getImagePaddingY(frame))
-        # self.dprint('pixelFormat', frame.contents.getImagePixelFormat(frame))
-
         # Release driver image cache
         frame.contents.release(frame)
         rgb_buff = c_buffer(b'\0', convert_params.height * convert_params.width * 3)
@@ -791,6 +787,13 @@ class Camera(object):
         node_pointer.contents.release(node_pointer)
 
     def property(self, camera_parameter, parameter_value=None):  # type will be grabbed from the xml
+        """
+        A mechanism to get and set your camera parameters
+
+        :param camera_parameter: You can find a list of usable camera parameters in the 'iCentral' program
+        :param parameter_value:  If you leave this blank, then it will return the current value of input parameter
+        :return: either a camera value or 0 for success or -1 for failure
+        """
         self.dprint(f"camera parameter is  {camera_parameter}")
         self.dprint(f"parameter_value is  {parameter_value}")
         self.dprint(f"xml is is  {self.xml_property_file}")
