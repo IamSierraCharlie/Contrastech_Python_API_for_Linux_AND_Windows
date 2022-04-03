@@ -18,7 +18,7 @@ print(f'The number of cameras was {api.camera_count}')
 # essentially, here, you could loop through a range to set up each camera
 # next, create the camera instance
 ''' repeat these lines below for each camera 0, for the first camera, 1 for the second and so on'''
-api.create_camera_instance()
+api.create_camera_instance(0)
 api.open_camera(0)
 api.set_camera_resolution(0, img_width, img_height, img_channels=3, centre_resolution=False)
 print("setting some properties")
