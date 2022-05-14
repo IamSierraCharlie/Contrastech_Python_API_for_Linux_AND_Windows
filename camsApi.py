@@ -84,8 +84,8 @@ class Camera(object):
     def set_offset(self, centre_resolution):
         max_width = self.property("SensorWidth")
         max_height = self.property("SensorHeight")
-        #current_width = self.property("Width")
-        #current_height = self.property("Height")
+        # current_width = self.property("Width")
+        # current_height = self.property("Height")
         offset_x = 0
         offset_y = 0
         self.dprint(f'sssssssssssssssssssss {self.img_width}, {self.img_height}')
@@ -374,7 +374,7 @@ class Camera(object):
             self.dprint("Device Version = " + str(camera.getDeviceVersion(camera)))
             self.dprint("Interface name = " + str(camera.getInterfaceName(camera)))
             self.dprint("Interface type = " + str(camera.getInterfaceType(camera)))
-            fname = f"{(camera.getVendorName(camera)).decode('utf-8')}_{(camera.getModelName(camera)).decode('utf-8')}"
+            fname = f"{(camera.getVendorName(camera)).decode('utf-8')}_{(camera.getModelName(camera)).decode('utf-8')}_{camera.getSerialNumber(camera).decode('utf-8')}"
             zippedfilename = f"{fname}.zip"
             xmlfile = f"{fname}.xml"
             charzip = c_char_p(zippedfilename.encode())
@@ -398,20 +398,17 @@ class Camera(object):
                 os.remove(zippedfilename)
                 self.dprint("self.xml_property_file " + self.xml_property_file)
                 self.dprint("GENICAM is " + charzip.value.decode('utf-8'))
-                # camera.disConnect(camera)
+                # camera.disConnect(camera) Todo: if multiple cameras detected, this now works - it is basic but is
+                #  working if you have more than one camera, you can select the one you want now by changing the
+                #  index of the camera list below
                 self.campointer = camera_list[0]  # this is the actual camera
-                # self.connect_device_control(self.campointer)
-                # self.property_get("ChunkEnable")
                 self.get_usb_info()
-                # open the camera
-                # query this camera?
-                # Todo: if multiple cameras detected, should we ask the user which one they want?
+
                 n_ret = self.open_camera()  # opens the camera
                 if n_ret != 0:  # handles the camera open failure
                     self.dprint("openCamera fail.")
                 else:
                     self.dprint("Camera Opened")
-                return camera_list[0]
 
     def grab_image(self):
         """
@@ -618,9 +615,9 @@ class Camera(object):
                                         n_ret = GENICAM_createStringNode(byref(node_pointer_info), byref(node_pointer))
                                     else:  # get parameter value from the camera
                                         ctypes_value = create_string_buffer(MAX_STRING_LENTH)  # MAX_STRING_LENTH is 256
-                                        #self.dprint('x')
+                                        # self.dprint('x')
                                         n_ret = GENICAM_createStringNode(byref(node_pointer_info), byref(node_pointer))
-                                        #self.dprint('y')
+                                        # self.dprint('y')
 
                                     break
 
@@ -730,8 +727,9 @@ class Camera(object):
                             return -1
                         else:
                             self.releasecontents(node_pointer)
-                            self.dprint(f'This PARAMETER VALUE IS {parameter_value.value} - (NOTE: If this is blank, its '
-                                        f'because the parameter is an empty string)')
+                            self.dprint(
+                                f'This PARAMETER VALUE IS {parameter_value.value} - (NOTE: If this is blank, its '
+                                f'because the parameter is an empty string)')
                             return bytes(parameter_value.value).decode('utf-8')
                     else:
                         self.dprint("NODE TYPE 0")
@@ -815,9 +813,9 @@ class Camera(object):
             self.dprint(f"Executing command {camera_parameter} -> a work in progress")
         # ToDo: Get the command executor working
         else:  # all other - which is set value
-            #print(node_pointer)
-            #print(p_value)
-            #print(node_type)
+            # print(node_pointer)
+            # print(p_value)
+            # print(node_type)
             result = self.set_value(node_pointer, p_value, node_type)
         if result != 0:  # is this hasnt worked, no point moving on from here....
             self.dprint(f"setting up the call to the camera has failed => {result}")
