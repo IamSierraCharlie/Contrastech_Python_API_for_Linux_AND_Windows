@@ -18,18 +18,18 @@ class CameraApi(object):
         self.img_width = None
         self.img_height = None
         self.img_channels = None
-        self.image_source = None
-        self.frame = None
         self.userInfo = None
         self.xml_property_file = None
-        self.t = None
+        # self.t = None
         self.info = None
         self.temperature = None
-        self.acqCtrl = None
         self.connectCallBackFunc = connectCallBack(self.device_link_notify)
         self.connectCallBackFuncEx = connectCallBackEx(self.device_link_notify)
         self.frameCallbackFunc = callbackFunc(self.on_get_frame)
-        self.camera_pointer_list = None
+        self.image_source = []
+        self.camera_pointer_list = []
+        self.acqCtrl = []
+
         self.camera_count = None
         # self.create_camera_instance()  # instantiated upon calling the camera Class
         # self.set_camera_resolution(img_width, img_height)
@@ -205,85 +205,85 @@ class CameraApi(object):
             return -1
         return 0
 
-    def check_valid_frame(self, cam_id, frame, image_source):
+    def check_valid_frame(self, cam_id, frame):
         n_ret = frame.contents.valid(frame)
         if n_ret != 0:
             self.dprint("frame is invalid!")
             frame.contents.release(frame)
             # Release related resources
-            image_source.contents.release(self.camera_pointer_list[cam_id])
+            self.image_source[cam_id].contents.release(self.camera_pointer_list[cam_id])
             return -1
 
     def deactivate(self, cam_id):
         self.dprint('should deactivate')
-        n_ret = self.image_source.contents.stopGrabbing(self.image_source)
+        n_ret = self.image_source[cam_id].contents.stopGrabbing(self.image_source[cam_id])
         if n_ret != 0:
             self.dprint("stopGrabbing fail!")
             # Release related resourcesrces
-            self.image_source.contents.release(self.image_source)
+            self.image_source[cam_id].contents.release(self.image_source[cam_id])
             return -1
         # Turn off trigger mode - camera light should stop flashing
-        trig_mode_enum_node = self.acqCtrl.contents.triggerMode(self.acqCtrl)
+        trig_mode_enum_node = self.acqCtrl[cam_id].contents.triggerMode(self.acqCtrl[cam_id])
         n_ret = trig_mode_enum_node.setValueBySymbol(byref(trig_mode_enum_node), b"Off")
         if n_ret != 0:
             self.dprint("set TriggerMode value [On] fail!")
             # Release related resources
             trig_mode_enum_node.release(byref(trig_mode_enum_node))
-            self.acqCtrl.contents.release(self.acqCtrl)
+            self.acqCtrl[cam_id].contents.release(self.acqCtrl[cam_id])
             return -1
 
         n_ret = self.close_camera(cam_id)
         if n_ret != 0:
             self.dprint("closeCamera fail")
-            self.image_source.contents.release(self.image_source)
+            self.image_source[cam_id].contents.release(self.image_source[cam_id])
             return -1
-        self.image_source.contents.release(self.image_source)
+        self.image_source[cam_id].contents.release(self.image_source[cam_id])
 
     def activate(self, cam_id):
         # connect to the camera
-        self.acqCtrl = pointer(GENICAM_AcquisitionControl())
+        self.acqCtrl.insert(cam_id, pointer(GENICAM_AcquisitionControl()))  # = pointer(GENICAM_AcquisitionControl()) asdasda
         acq_ctrl_info = GENICAM_AcquisitionControlInfo()
         acq_ctrl_info.pCamera = pointer(self.camera_pointer_list[cam_id])
-        n_ret = GENICAM_createAcquisitionControl(pointer(acq_ctrl_info), byref(self.acqCtrl))
+        n_ret = GENICAM_createAcquisitionControl(pointer(acq_ctrl_info), byref(self.acqCtrl[cam_id]))
         if n_ret != 0:
             self.dprint("create AcquisitionControl fail!")
             return -1
         # create the streaming source
         self.dprint('creating a stream source')
-        self.image_source = pointer(GENICAM_StreamSource())
+        self.image_source.insert(cam_id, pointer(GENICAM_StreamSource()))  # = pointer(GENICAM_StreamSource())
         stream_source_info = GENICAM_StreamSourceInfo()
         stream_source_info.channelId = 0
         stream_source_info.pCamera = pointer(self.camera_pointer_list[cam_id])
-        n_ret = GENICAM_createStreamSource(pointer(stream_source_info), byref(self.image_source))
+        n_ret = GENICAM_createStreamSource(pointer(stream_source_info), byref(self.image_source[cam_id]))
         if n_ret != 0:
-            self.dprint("create image_source fail!")
+            self.dprint("create self.image_source[cam_id] fail!")
             return -1
         # attach grabbing
-        n_ret = self.image_source.contents.attachGrabbing(self.image_source, self.frameCallbackFunc)
+        n_ret = self.image_source[cam_id].contents.attachGrabbing(self.image_source[cam_id], self.frameCallbackFunc)
         if n_ret != 0:
             self.dprint("attachGrabbing fail!")
-            self.image_source.contents.release(self.image_source)
+            self.image_source[cam_id].contents.release(self.image_source[cam_id])
             return -1
 
         # Start grabbing images
-        n_ret = self.image_source.contents.startGrabbing(self.image_source, c_ulonglong(0),
+        n_ret = self.image_source[cam_id].contents.startGrabbing(self.image_source[cam_id], c_ulonglong(0),
                                                          c_int(GENICAM_EGrabStrategy.grabStrartegySequential))
         if n_ret != 0:
             self.dprint("startGrabbing fail!")
             # Release related resources
-            self.image_source.contents.release(self.image_source)
+            self.image_source[cam_id].contents.release(self.image_source[cam_id])
             return -1
 
         # detach from grabbing - this step is necessary in order to successfully grab images
-        n_ret = GENICAM_createAcquisitionControl(pointer(acq_ctrl_info), byref(self.acqCtrl))
+        n_ret = GENICAM_createAcquisitionControl(pointer(acq_ctrl_info), byref(self.acqCtrl[cam_id]))
         if n_ret != 0:
             self.dprint("create AcquisitionControl fail!")
-            self.image_source.contents.release(self.image_source)
+            self.image_source[cam_id].contents.release(self.image_source[cam_id])
             return -1
-        n_ret = self.image_source.contents.detachGrabbing(self.image_source, self.frameCallbackFunc)
+        n_ret = self.image_source[cam_id].contents.detachGrabbing(self.image_source[cam_id], self.frameCallbackFunc)
         if n_ret != 0:
             self.dprint("detachGrabbing fail!")
-            self.image_source.contents.release(self.image_source)
+            self.image_source[cam_id].contents.release(self.image_source[cam_id])
             return -1
 
     def enumerate_cameras(self):  # also get xml?
@@ -448,32 +448,32 @@ class CameraApi(object):
             return self.camera_pointer_list[cam_id]
 
     def grab_image(self, cam_id):
-        trig_software_cmd_node = self.acqCtrl.contents.triggerSoftware(self.acqCtrl)
+        trig_software_cmd_node = self.acqCtrl[cam_id].contents.triggerSoftware(self.acqCtrl[cam_id])
         n_ret = trig_software_cmd_node.execute(byref(trig_software_cmd_node))
         if n_ret != 0:
             self.dprint(f"Execute triggerSoftware fail => {n_ret} ")
             # 释放相关资源 - Release related resources
             trig_software_cmd_node.release(byref(trig_software_cmd_node))
-            self.acqCtrl.contents.release(self.acqCtrl)
-            self.image_source.contents.release(self.image_source)
+            self.acqCtrl[cam_id].contents.release(self.acqCtrl[cam_id])
+            self.image_source[cam_id].contents.release(self.image_source[cam_id])
             return -1
         # self.dprint('2')
         frame = pointer(GENICAM_Frame())
         # self.dprint(datetime.datetime.now().strftime("%y%m%d%H%M%S"))
-        n_ret = self.image_source.contents.getFrame(self.image_source, byref(frame), c_uint(1000))
+        n_ret = self.image_source[cam_id].contents.getFrame(self.image_source[cam_id], byref(frame), c_uint(1000))
         if n_ret != 0:
             self.dprint(f"SoftTrigger getFrame fail! timeOut [1000]ms -> {n_ret}")
             self.dprint("Not catastrophic so continuing")
             self.dprint("You should only see this at the start of image grabbing")
             # Release related resources
             # self.deactivate()
-            # self.image_source.contents.release(self.image_source)  # in this instance,
+            # self.self.image_source[cam_id].contents.release(self.image_source[cam_id])  # in this instance,
             return -1
         else:
             # self.dprint("SoftTrigger getFrame success BlockId = " + str(frame.contents.getBlockId(frame)))
             # self.dprint("get frame time: " + str(datetime.datetime.now()))
             trig_software_cmd_node.release(byref(trig_software_cmd_node))
-            self.check_valid_frame(self.camera_pointer_list[cam_id], frame, self.image_source)
+            self.check_valid_frame(self.camera_pointer_list[cam_id], frame)
         # self.dprint("grabbed BlockId = %d" % (frame.contents.getBlockId(frame)))
         # self.dprint("Chunk = %d" % (frame.contents.getChunkCount(frame)))
 
@@ -507,7 +507,7 @@ class CameraApi(object):
             byref(rgb_size))
         if n_ret != 0:
             self.dprint("image convert fail! errorCode = " + str(n_ret))
-            self.image_source.contents.release(self.image_source)
+            self.image_source[cam_id].contents.release(self.image_source[cam_id])
             return -1
         bytearray_image = bytearray(string_at(rgb_buff, self.img_channels * self.img_height * self.img_width))
         buffer_image = np.frombuffer(buffer=bytearray_image, dtype=np.uint8)
