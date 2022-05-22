@@ -25,10 +25,16 @@ up your USB3 Industrial camera.  Getting and setting parameter values is very ea
 Tested and confirmed on the following Industrial USB3 Camera
 - Mars1300-210uc
 - Mars800-545um
-Any other Mars USB3 camera from ContrasTech should work also.
+Any other Mars USB3 camera from ContrasTech should work also.  
+
 With some minor adjustments, you could probably use this for a GIG-E camera also.
 
 If you own one of these cameras and work in Linux and can use this code, then please do so.  Also, please contribute anything you feel to be of benefit.
+### MultiCamera Use Status
+I have tested with multiple cameras using GrabDemoMultiCam.py
+and multicamsApi.py.  I can confirm it works, but it not thoroughly tested as I do not have a use for multiple cameras at 
+this point in time.  I've tested with 2 cameras of the same type. (Mars1300-210uc)
+
 ### Example use
 The script 'ImageGrabDemo.py' is provided as an example to show the code working - again, very basic.
 Essentially, I have historically created an instance of the camera, activated the camera, grabbed an image and then deactivated it

@@ -401,7 +401,7 @@ class Camera(object):
                 # camera.disConnect(camera) Todo: if multiple cameras detected, this now works - it is basic but is
                 #  working if you have more than one camera, you can select the one you want now by changing the
                 #  index of the camera list below
-                self.campointer = camera_list[0]  # this is the actual camera
+                self.campointer = camera_list[0]  # this is the actual camera - select the one you want from the list.
                 self.get_usb_info()
 
                 n_ret = self.open_camera()  # opens the camera
