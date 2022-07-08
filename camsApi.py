@@ -1,6 +1,6 @@
 import time
-from ImageConvert import *
-from MVSDK import *  # only for the contrastech camera
+from Contrastech.ImageConvert import *
+from Contrastech.MVSDK import *  # only for the contrastech camera
 import numpy as np
 import zipfile
 import os
@@ -354,7 +354,7 @@ class Camera(object):
         self.dprint("Speed " + usb_camera.contents.getSpeed(usb_camera).decode("utf-8"))
         self.dprint("MaxPower " + usb_camera.contents.getMaxPower(usb_camera).decode("utf-8"))
         self.dprint("DriverInstalled " + str(usb_camera.contents.isDriverInstalled(usb_camera)))
-        input("Press Enter to continue...")
+        # input("Press Enter to continue...")
         usb_camera.contents.release(usb_camera)
 
     def create_camera_instance(self):
