@@ -1,6 +1,6 @@
 import time
-from Contrastech.ImageConvert import *
-from Contrastech.MVSDK import *  # only for the contrastech camera
+from ImageConvert import *
+from MVSDK import *  # only for the contrastech camera
 import numpy as np
 import zipfile
 import os
