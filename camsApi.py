@@ -413,7 +413,6 @@ class Camera(object):
     def grab_image(self):
         """
         Easy means to gram an image
-
         :return: An image ND style array which can be used or manipulated by opencv or pillow (for example)
         """
         trig_software_cmd_node = self.acqCtrl.contents.triggerSoftware(self.acqCtrl)
